@@ -1,5 +1,14 @@
 ![Debundle](debundle_logo.png)
 
+# update
+
+1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
+  1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
+instead of `["body", 0, "expression", "arguments", 0];`.   
+file: `src/index.js`
+  2. use `recast.types.visit` instead of `recast.types.traverse`.   
+file: `src/extern/replace-method/index.js`
+
 # debundle
 
 This is a tool built to unpack javascript bundles prudiced by webpack and browserify.

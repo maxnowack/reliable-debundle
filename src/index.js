@@ -41,7 +41,9 @@ if (!config.moduleAst) {
     config.moduleAst = ["body", 0, "expression", "arguments", 0];
   } else if (config.type === 'webpack') {
     // Where webpack defaultly stores all it's embedded modules as an array
-    config.moduleAst = ["body", 0, "expression", "arguments", 0];
+    // config.moduleAst = ["body", 0, "expression", "arguments", 0];
+    // from:  hectorqin /debundle 
+        config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];
   }
   console.log(`* Using default AST location for ${config.type}...`);
 }
@@ -76,6 +78,8 @@ let iifeModules = ast;
 let moduleAstPathTriedSoFar = [];
 while (true) {
   let operation = config.moduleAst.shift();
+  console.log(operation)
+  console.log(iifeModules)
   if (!iifeModules) {
     throw new Error(`Locating the module AST failed. Please specifify a valid manual ast path in your config file with the key \`moduleAst\`. We got as far as ${moduleAstPathTriedSoFar.join('.')} before an error occured.`);
   } else if (operation === undefined) {

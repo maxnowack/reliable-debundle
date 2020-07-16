@@ -1,5 +1,5 @@
 var recast   = require('recast')
-var traverse = recast.types.traverse
+var visit = recast.types.visit
 var build    = recast.types.builders
 var parse    = recast.parse
 var print    = recast.print
@@ -27,10 +27,15 @@ function replacer(ast) {
 
     var size = methodPath.length
 
-    traverse(ast, size === 1
-      ? single
-      : nested
-    )
+    visit(ast, {
+      visitCallExpression(path){
+        const result = size === 1 ? single(path.node) : nested(path.node)
+        if (result !== undefined) {
+          path.replace(result)
+        }
+        this.traverse(path)
+      }
+    })
 
     return replace
 
@@ -39,11 +44,7 @@ function replacer(ast) {
       if (node.type === 'CallExpression' && methodPath[0] !== node.callee.name) return;
       if (node.type === 'Identifier' && methodPath[0] !== node.name) return;
 
-      var result = updater(node)
-      if (result !== undefined) {
-        this.replace(result)
-        return false
-      }
+      return updater(node)
     }
 
     function nested(node) {
@@ -65,11 +66,7 @@ function replacer(ast) {
       if (!o.object || !o.object.name) return
       if (o.object.name !== methodPath[0]) return
 
-      var result = updater(node)
-      if (result !== undefined) {
-        this.replace(result)
-        return false
-      }
+      return updater(node)
     }
   }
 }
