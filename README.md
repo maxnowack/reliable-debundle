@@ -9,6 +9,8 @@ file: `src/index.js`
   2. use `recast.types.visit` instead of `recast.types.traverse`.   
 file: `src/extern/replace-method/index.js`
 
+2. support windows os dir style using `path.normalize`.
+
 # debundle
 
 This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
