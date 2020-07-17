@@ -1,8 +1,8 @@
-var recast   = require('recast')
+var recast = require('recast')
 var visit = recast.types.visit
-var build    = recast.types.builders
-var parse    = recast.parse
-var print    = recast.print
+var build = recast.types.builders
+var parse = recast.parse
+var print = recast.print
 
 module.exports = replacer
 
@@ -22,15 +22,17 @@ function replacer(ast) {
 
   function replace(methodPath, updater) {
     methodPath = Array.isArray(methodPath)
-      ?  methodPath
-      : [methodPath]
+        ? methodPath
+        : [methodPath]
 
     var size = methodPath.length
 
     visit(ast, {
-      visitCallExpression(path){
+      visitCallExpression(path) {
+        // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
         if (result !== undefined) {
+          // console.log(result)
           path.replace(result)
         }
         this.traverse(path)
