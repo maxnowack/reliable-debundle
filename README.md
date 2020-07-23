@@ -11,6 +11,14 @@ file: `src/extern/replace-method/index.js`
 
 2. support windows os dir style using `path.normalize`.
 
+# tools
+
+- https://astexplorer.net/
+- https://esprima.org/demo/parse.html
+
+- https://github.com/benjamn/recast  
+- https://github.com/benjamn/ast-types/blob/master/def/core.ts  
+
 # debundle
 
 This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
