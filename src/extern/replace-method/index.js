@@ -43,7 +43,16 @@ function replacer(ast) {
 
     function single(node) {
       if (node.type !== 'CallExpression' && node.type !== 'Identifier') return;
-      if (node.type === 'CallExpression' && methodPath[0] !== node.callee.name) return;
+
+      // if (node.type === 'CallExpression' && methodPath[0] !== node.callee.name) return;
+      if (node.type === 'CallExpression') {
+        if (node.callee.type == 'MemberExpression') {
+          //  n.n(x)
+          if (node.callee.object && methodPath[0] !== node.callee.object.name) {return;}
+        }
+        else if (methodPath[0] !== node.callee.name) return;
+      }
+
       if (node.type === 'Identifier' && methodPath[0] !== node.name) return;
 
       return updater(node)

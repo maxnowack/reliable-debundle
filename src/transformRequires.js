@@ -2,6 +2,9 @@ const replace = require('./extern/replace-method');
 const path = require('path');
 const getModuleLocation = require('./utils/getModuleLocation');
 
+// only for debugging in WebStrom watch
+var recast = require('recast');var parse = recast.parse;var print = recast.print;
+
 // Transform require calls to match the path of a given file.
 // Here's the problem this transformation solves. Say I've got a file `foo` and a file `bar`, and
 // they are in seperate directories. `foo` requires `bar`. The require path to bar in `foo` needs to
@@ -37,6 +40,10 @@ function transformRequires(
       // Determine the name of the require function. In unminified bundles it's `__webpack_require__`.
       let requireFunctionIdentifier = mod.code.params[type === 'webpack' ? 2 : 0];
 
+
+      // source = 'var s=3;';
+      // console.log(print(parse(source)).code);
+
       // Adjust the require calls to point to the files, not just the numerical module ids.
       // Unlike the below transforms, we always want this one no matter the name of the require
       // function to run since we're doning more than just changing the require functon name.
@@ -44,6 +51,10 @@ function transformRequires(
         replace(mod.code)(
             requireFunctionIdentifier.name, // the function that require is in within the code.
             node => {
+
+              // only for debugging in WebStrom watch
+              print  = print
+
               switch (node.type) {
                 case 'CallExpression':
                   // If require is called bare (why would this ever happen? IDK, it did in a bundle
@@ -59,6 +70,10 @@ function transformRequires(
                       } : requireFunctionIdentifier,
                       arguments: [],
                     };
+                  }
+
+                  if (node.callee.type == 'MemberExpression') {
+                    return updateMemberExpression(node.callee, node.arguments, replaceRequires, requireFunctionIdentifier);
                   }
 
                   // If a module id is in the require, then do the require.
@@ -216,6 +231,27 @@ function buildVariableAssignment(variableIdentifier, contentIdentifier) {
     ],
     "kind": "const",
   };
+}
+
+function updateRequireVar(replaceRequires, requireFunctionIdentifier) {
+  return replaceRequires === 'inline' ? {
+    type: 'Identifier',
+    name: 'require',
+  } : requireFunctionIdentifier
+}
+
+function updateMemberExpression(callee, arguments, replaceRequires, requireFunctionIdentifier) {
+  var node= {
+    "type": "CallExpression",
+    "callee": {
+      "type": "MemberExpression",
+      "object": updateRequireVar(replaceRequires,requireFunctionIdentifier),
+      "property": callee.property,
+    },
+    "arguments":arguments
+  }
+  return node;
+
 }
 
 module.exports = transformRequires;
