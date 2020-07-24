@@ -13,11 +13,20 @@ file: `src/extern/replace-method/index.js`
 
 # tools
 
+## online parser
 - https://astexplorer.net/
 - https://esprima.org/demo/parse.html
 
+## libs
 - https://github.com/benjamn/recast  
 - https://github.com/benjamn/ast-types/blob/master/def/core.ts  
+
+## how to view the code of an ast node?
+```
+var recast = require('recast');
+var print = recast.print;
+print(ast_node)
+```
 
 # debundle
 
