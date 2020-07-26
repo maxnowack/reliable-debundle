@@ -48,7 +48,7 @@ function transformRequires(
       // Unlike the below transforms, we always want this one no matter the name of the require
       // function to run since we're doning more than just changing the require functon name.
       if (requireFunctionIdentifier) {
-        replace(mod.code)(
+        replace(mod.code,replaceRequires)(
             requireFunctionIdentifier.name, // the function that require is in within the code.
             node => {
 

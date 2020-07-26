@@ -47,7 +47,7 @@ class FunctionSameNameVarStack {
 
 }
 
-function replacer(ast) {
+function replacer(ast, replaceRequires) {
   if (Buffer.isBuffer(ast)) ast = String(ast)
   if (typeof ast === 'string')
     ast = parse(ast)
@@ -74,6 +74,9 @@ function replacer(ast) {
     visit(ast, {
 
       visitFunction(path) {
+
+        if (replaceRequires == 'variable') return false;
+
         // avoid traversing this subtree.
         // return false;
 
@@ -107,6 +110,7 @@ function replacer(ast) {
       }
 
       , visitFunctionDeclaration(path) {
+        if (replaceRequires == 'variable') return false;
 
         var hasSameName = path.value.id.name == methodPath[0]
 
@@ -130,6 +134,7 @@ function replacer(ast) {
 
       }
       , visitVariableDeclaration(path) {
+        if (replaceRequires == 'variable') return false;
         /**
          * function (e, t, n) {
          *  var u = n(1);
@@ -154,7 +159,7 @@ function replacer(ast) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
 
-        if (result == 'savename') {
+        if (result == 'samename') {
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
@@ -174,21 +179,31 @@ function replacer(ast) {
 
     function single(node) {
 
-      if (functionsStack.ifSameNameWorking()) return 'savename';
+      if (functionsStack.ifSameNameWorking()) return 'samename';
 
-      if (node.type !== 'CallExpression' && node.type !== 'Identifier') return;
 
-      // if (node.type === 'CallExpression' && methodPath[0] !== node.callee.name) return;
-      if (node.type === 'CallExpression') {
-        if (node.callee.type == 'MemberExpression') {
-          //  n.n(x)
-          if (node.callee.object && methodPath[0] !== node.callee.object.name) {
-            return;
+      var target = null;
+
+      switch (node.type) {
+        case 'CallExpression':
+          if (replaceRequires == 'variable') {
+            target = node.callee;
+          } else {
+            // if n.n(x)
+            target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
           }
-        } else if (methodPath[0] !== node.callee.name) return;
+          break;
+
+        case 'Identifier':
+          if (methodPath[0] !== node.name) return;
+          break;
+
+        default:
+          return;
       }
 
-      if (node.type === 'Identifier' && methodPath[0] !== node.name) return;
+
+      if (target && target.name !== methodPath[0]) return;
 
       return updater(node)
     }
