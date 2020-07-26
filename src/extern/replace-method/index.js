@@ -6,10 +6,10 @@ var print = recast.print
 
 module.exports = replacer
 
-class FunctionSameNameVarInfo {
-  constructor(func, hasSameNameVar = null) {
+class FunctionSameNameInfo {
+  constructor(func, hasSameName = null) {
     this.func = func;
-    this.hasSameNameVar = hasSameNameVar;
+    this.hasSameName = hasSameName;
   }
 }
 
@@ -22,23 +22,23 @@ class FunctionSameNameVarStack {
     return this.stack.length == 0
   }
 
-  add(func, hasSameNameVar = null) {
-    if (this.ifSameNameVarWorking())
-      hasSameNameVar = true
+  add(func, hasSameName = null) {
+    if (this.ifSameNameWorking())
+      hasSameName = true
 
-    this.stack.push(new FunctionSameNameVarInfo(func, hasSameNameVar));
+    this.stack.push(new FunctionSameNameInfo(func, hasSameName));
   }
 
   pop() {
     this.stack.pop()
   }
 
-  ifSameNameVarWorking() {
-    return this.stack.length > 1 && this.stack[this.stack.length - 1].hasSameNameVar
+  ifSameNameWorking() {
+    return this.stack.length > 0 && this.stack[this.stack.length - 1].hasSameName
   }
 
   letSameNameVarWorking() {
-    this.stack[this.stack.length - 1].hasSameNameVar = true
+    this.stack[this.stack.length - 1].hasSameName = true
   }
 
   log(msg) {
@@ -86,10 +86,10 @@ function replacer(ast) {
          * }
          */
 
-        let hasSameNameVar = functionsStack.is_empty() ? null : path.value.params.some(
+        let hasSameName = functionsStack.is_empty() ? null : path.value.params.some(
             (param) => param.name == methodPath[0])
 
-        if (hasSameNameVar) {
+        if (hasSameName) {
           var code = debug_code(path.value)
           code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
           functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${code} `)
@@ -106,6 +106,29 @@ function replacer(ast) {
         functionsStack.pop()
       }
 
+      , visitFunctionDeclaration(path) {
+
+        var hasSameName = path.value.id.name == methodPath[0]
+
+        this.traverse(path)
+
+        /**
+         * Should be underneath `this.traverse(path)`.
+         * Otherwise
+         *   function n() { return n(0) }
+         * would falsely turn to
+         *   function n() { return n('./0') }
+         * which should be correctly
+         *   function n() { return require('./0'); }
+         *
+         * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
+         */
+        if (hasSameName) {
+          functionsStack.log(`A function named ${methodPath[0]} declaraed: ${print(path).code} `)
+          functionsStack.letSameNameVarWorking();
+        }
+
+      }
       , visitVariableDeclaration(path) {
         /**
          * function (e, t, n) {
@@ -115,10 +138,10 @@ function replacer(ast) {
          *  }
          * }
          */
-        var hasSameNameVar = path.value.declarations.some(
+        var hasSameName = path.value.declarations.some(
             (dec) => dec.id.type === 'Identifier' && dec.id.name == methodPath[0]
         )
-        if (hasSameNameVar) {
+        if (hasSameName) {
           functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
           functionsStack.letSameNameVarWorking();
         }
@@ -131,7 +154,7 @@ function replacer(ast) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
 
-        if (result == 'savenamevar') {
+        if (result == 'savename') {
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
@@ -151,7 +174,7 @@ function replacer(ast) {
 
     function single(node) {
 
-      if (functionsStack.ifSameNameVarWorking()) return 'savenamevar';
+      if (functionsStack.ifSameNameWorking()) return 'savename';
 
       if (node.type !== 'CallExpression' && node.type !== 'Identifier') return;
 
