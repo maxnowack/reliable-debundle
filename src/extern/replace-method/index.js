@@ -23,6 +23,9 @@ class FunctionSameNameVarStack {
   }
 
   add(func, hasSameNameVar = null) {
+    if (this.ifSameNameVarWorking())
+      hasSameNameVar = true
+
     this.stack.push(new FunctionSameNameVarInfo(func, hasSameNameVar));
   }
 
@@ -31,7 +34,7 @@ class FunctionSameNameVarStack {
   }
 
   ifSameNameVarWorking() {
-    return this.stack[this.stack.length - 1].hasSameNameVar
+    return this.stack.length > 1 && this.stack[this.stack.length - 1].hasSameNameVar
   }
 
   letSameNameVarWorking() {
@@ -52,7 +55,7 @@ function replacer(ast) {
   var functionsStack = new FunctionSameNameVarStack();
 
   // print code, used for debug
-  var debug_code = replace.code = function() {
+  var debug_code = replace.code = function () {
     return print(ast).code
   }
   // why this line?
@@ -87,7 +90,9 @@ function replacer(ast) {
             (param) => param.name == methodPath[0])
 
         if (hasSameNameVar) {
-          functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${debug_code(path.value)} `)
+          var code = debug_code(path.value)
+          code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
+          functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${code} `)
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
@@ -116,10 +121,6 @@ function replacer(ast) {
         if (hasSameNameVar) {
           functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
           functionsStack.letSameNameVarWorking();
-          // return false to
-          // indicate that the traversal need not continue any further down this subtree.
-          // https://github.com/benjamn/ast-types#ast-traversal
-          return false;
         }
 
         this.traverse(path)
@@ -130,7 +131,7 @@ function replacer(ast) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
 
-        if(result == 'savenamevar'){
+        if (result == 'savenamevar') {
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
