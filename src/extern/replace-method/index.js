@@ -37,7 +37,7 @@ class FunctionSameNameVarStack {
     return this.stack.length > 0 && this.stack[this.stack.length - 1].hasSameName
   }
 
-  letSameNameVarWorking() {
+  letSameNameWorking() {
     this.stack[this.stack.length - 1].hasSameName = true
   }
 
@@ -129,7 +129,7 @@ function replacer(ast, replaceRequires) {
          */
         if (hasSameName) {
           functionsStack.log(`A function named ${methodPath[0]} declaraed: ${print(path).code} `)
-          functionsStack.letSameNameVarWorking();
+          functionsStack.letSameNameWorking();
         }
 
       }
@@ -148,7 +148,7 @@ function replacer(ast, replaceRequires) {
         )
         if (hasSameName) {
           functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
-          functionsStack.letSameNameVarWorking();
+          functionsStack.letSameNameWorking();
         }
 
         this.traverse(path)
