@@ -1,0 +1,1 @@
+var x = require('./0'), u = require.n(x), y = 3;
