@@ -9,13 +9,17 @@ file: `src/index.js`
   2. use `recast.types.visit` instead of `recast.types.traverse`.   
 file: `src/extern/replace-method/index.js`
 
-2. support windows os dir style using `path.normalize`.
+2. v0.5.3.1 support windows os dir style using `path.normalize`.
+
+3. v0.5.3.2 able to parse `n.d` to `require.d`
+
+4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
 
 # tools
 
-## online parser
-- https://astexplorer.net/
-- https://esprima.org/demo/parse.html
+## online tool to try parser
+- https://astexplorer.net/ support multiple parsers
+- [Esprima parser](https://esprima.org/demo/parse.html)
 
 ## libs
 - https://github.com/benjamn/recast  
@@ -124,6 +128,32 @@ your entrypoint.
 Not officially. However, if a bundle shares the same type module layout as Browserify or Webpack it
 may be possible to set the [moduleAst](https://github.com/1egoman/debundle/blob/master/DOCS.md#moduleast)
 configuration option to point to the location of the modules.
+
+### SameNameVar
+
+```
+  function (e, t, n) {  // ★★★ this n  is  require
+    var x = n(0);
+
+    function It(e) {
+      var n = p(e); // ★★★ this  n  is not require
+      return n && n(99);
+    }
+
+    function b(e, t, n) { // ★★★ this  n  is not require
+        return n(99);
+    }
+
+  }
+
+```
+
+Prior to v0.5.3.3, you have to use `"replaceRequires": "variable",`, otherwise you got  `require(99)` from `n(99)` in the code above.  
+
+From v0.5.3.3, you can use `"replaceRequires": "inline".  
+Code: `visitFunction` and `visitVariableDeclaration` in `src/extern/replace-method/index.js`  
+Test: `3--webpack-SameNameVar-visitVariableDeclaration.js`  and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
+```
 
 # Contributing
 - After cloning down the project, run `npm install` - that should be it.

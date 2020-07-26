@@ -6,10 +6,49 @@ var print = recast.print
 
 module.exports = replacer
 
+class FunctionSameNameVarInfo {
+  constructor(func, hasSameNameVar = null) {
+    this.func = func;
+    this.hasSameNameVar = hasSameNameVar;
+  }
+}
+
+class FunctionSameNameVarStack {
+  constructor() {
+    this.stack = []
+  }
+
+  is_empty() {
+    return this.stack.length == 0
+  }
+
+  add(func, hasSameNameVar = null) {
+    this.stack.push(new FunctionSameNameVarInfo(func, hasSameNameVar));
+  }
+
+  pop() {
+    this.stack.pop()
+  }
+
+  ifSameNameVarWorking() {
+    return this.stack[this.stack.length - 1].hasSameNameVar
+  }
+
+  letSameNameVarWorking() {
+    this.stack[this.stack.length - 1].hasSameNameVar = true
+  }
+  log(msg){
+   console.log('[Travel][SameNameVar] '+msg)
+  }
+
+}
+
 function replacer(ast) {
   if (Buffer.isBuffer(ast)) ast = String(ast)
   if (typeof ast === 'string')
     ast = parse(ast)
+
+  var functionsStack = new FunctionSameNameVarStack();
 
   replace.code = code
   replace.replace = replace
@@ -28,7 +67,55 @@ function replacer(ast) {
     var size = methodPath.length
 
     visit(ast, {
-      visitCallExpression(path) {
+
+      visitFunction(path) {
+        // avoid traversing this subtree.
+        // return false;
+
+        /**
+         * function (e, t, n) {
+         *  var u = n(1);
+         *  function c(n){   // ★★★ find the var n which has same name with requrie
+         *    n(2);
+         *  }
+         * }
+         */
+
+        hasSameNameVar = functionsStack.is_empty() ? null : path.value.params.some(
+            (param) => param.name == methodPath[0])
+
+        if(hasSameNameVar){
+          functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${print(path.value).code} `)
+        }
+
+        functionsStack.add(path.value, hasSameNameVar)
+
+        this.traverse(path)
+
+        functionsStack.pop()
+      }
+
+      , visitVariableDeclaration(path) {
+        /**
+         * function (e, t, n) {
+         *  var u = n(1);
+         *  function c(){
+         *    var n =3; // ★★★ find the var n which has same name with requrie
+         *  }
+         * }
+         */
+        var hasSameNameVar = path.value.declarations.some(
+            (dec) => dec.id.type === 'Identifier' && dec.id.name == methodPath[0]
+        )
+        if (hasSameNameVar) {
+          functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
+          functionsStack.letSameNameVarWorking();
+        }
+        this.traverse(path)
+
+      }
+
+      , visitCallExpression(path) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
         if (result !== undefined) {
@@ -37,20 +124,25 @@ function replacer(ast) {
         }
         this.traverse(path)
       }
-    })
+      ,
+    });
 
     return replace
 
     function single(node) {
+
+      if (functionsStack.ifSameNameVarWorking()) return;
+
       if (node.type !== 'CallExpression' && node.type !== 'Identifier') return;
 
       // if (node.type === 'CallExpression' && methodPath[0] !== node.callee.name) return;
       if (node.type === 'CallExpression') {
         if (node.callee.type == 'MemberExpression') {
           //  n.n(x)
-          if (node.callee.object && methodPath[0] !== node.callee.object.name) {return;}
-        }
-        else if (methodPath[0] !== node.callee.name) return;
+          if (node.callee.object && methodPath[0] !== node.callee.object.name) {
+            return;
+          }
+        } else if (methodPath[0] !== node.callee.name) return;
       }
 
       if (node.type === 'Identifier' && methodPath[0] !== node.name) return;
@@ -81,3 +173,4 @@ function replacer(ast) {
     }
   }
 }
+
