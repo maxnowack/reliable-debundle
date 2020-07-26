@@ -83,14 +83,18 @@ function replacer(ast) {
          * }
          */
 
-        hasSameNameVar = functionsStack.is_empty() ? null : path.value.params.some(
+        let hasSameNameVar = functionsStack.is_empty() ? null : path.value.params.some(
             (param) => param.name == methodPath[0])
 
         if (hasSameNameVar) {
           functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${debug_code(path.value)} `)
+          // return false to
+          // indicate that the traversal need not continue any further down this subtree.
+          // https://github.com/benjamn/ast-types#ast-traversal
+          return false;
         }
 
-        functionsStack.add(path.value, hasSameNameVar)
+        functionsStack.add(path.value, false);
 
         this.traverse(path)
 
@@ -112,7 +116,12 @@ function replacer(ast) {
         if (hasSameNameVar) {
           functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
           functionsStack.letSameNameVarWorking();
+          // return false to
+          // indicate that the traversal need not continue any further down this subtree.
+          // https://github.com/benjamn/ast-types#ast-traversal
+          return false;
         }
+
         this.traverse(path)
 
       }
@@ -120,6 +129,14 @@ function replacer(ast) {
       , visitCallExpression(path) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
+
+        if(result == 'savenamevar'){
+          // return false to
+          // indicate that the traversal need not continue any further down this subtree.
+          // https://github.com/benjamn/ast-types#ast-traversal
+          return false;
+        }
+
         if (result !== undefined) {
           // console.log(result)
           path.replace(result)
@@ -133,7 +150,7 @@ function replacer(ast) {
 
     function single(node) {
 
-      if (functionsStack.ifSameNameVarWorking()) return;
+      if (functionsStack.ifSameNameVarWorking()) return 'savenamevar';
 
       if (node.type !== 'CallExpression' && node.type !== 'Identifier') return;
 

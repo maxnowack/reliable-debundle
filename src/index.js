@@ -13,6 +13,7 @@ const convertToIntegerKey = require('./utils/convertToIntegerKey');
 const bundleLocation = args._[0] || args.input || args.i;
 const outputLocation = args.output || args.o;
 const configPath = args.config || args.c;
+const logLevel = args.log || args.l || 'log';
 
 if (!(bundleLocation && outputLocation && configPath)) {
   console.log(`This is a debundler - it takes a bundle and expands it into the source that was used to compile it.`);
@@ -23,6 +24,7 @@ if (!(bundleLocation && outputLocation && configPath)) {
   console.log(`   --input,  -i  Bundle to debundle`);
   console.log(`   --output, -o  Directory to debundle code into.`);
   console.log(`   --config, -c  Configuration directory`);
+  console.log(`   --log, -l  Log level: log > debug `);
   console.log();
   process.exit(1);
 }
@@ -78,8 +80,12 @@ let iifeModules = ast;
 let moduleAstPathTriedSoFar = [];
 while (true) {
   let operation = config.moduleAst.shift();
-  console.log(operation)
-  console.log(iifeModules)
+
+  if(logLevel=='debug'){
+    console.log(operation)
+    console.log(iifeModules)
+  }
+
   if (!iifeModules) {
     throw new Error(`Locating the module AST failed. Please specifify a valid manual ast path in your config file with the key \`moduleAst\`. We got as far as ${moduleAstPathTriedSoFar.join('.')} before an error occured.`);
   } else if (operation === undefined) {
