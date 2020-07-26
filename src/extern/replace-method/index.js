@@ -37,8 +37,9 @@ class FunctionSameNameVarStack {
   letSameNameVarWorking() {
     this.stack[this.stack.length - 1].hasSameNameVar = true
   }
-  log(msg){
-   console.log('[Travel][SameNameVar] '+msg)
+
+  log(msg) {
+    console.log('[Travel][SameNameVar] ' + msg)
   }
 
 }
@@ -50,14 +51,15 @@ function replacer(ast) {
 
   var functionsStack = new FunctionSameNameVarStack();
 
-  replace.code = code
-  replace.replace = replace
+  // print code, used for debug
+  var debug_code = replace.code = function() {
+    return print(ast).code
+  }
+  // why this line?
+  // replace.replace = replace
 
   return replace
 
-  function code() {
-    return print(ast).code
-  }
 
   function replace(methodPath, updater) {
     methodPath = Array.isArray(methodPath)
@@ -84,8 +86,8 @@ function replacer(ast) {
         hasSameNameVar = functionsStack.is_empty() ? null : path.value.params.some(
             (param) => param.name == methodPath[0])
 
-        if(hasSameNameVar){
-          functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${print(path.value).code} `)
+        if (hasSameNameVar) {
+          functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${debug_code(path.value)} `)
         }
 
         functionsStack.add(path.value, hasSameNameVar)
