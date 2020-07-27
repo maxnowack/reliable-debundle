@@ -84,7 +84,7 @@
 
     n(0);    // this is require
 
-    function deep1() {
+    function deep1() {   // deep: 1
 
       return function n(param) {  // deep: 2
 

@@ -33,6 +33,7 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "promise-map-series": "^0.2.3",
+    "prompt-sync": "^4.2.0",
     "recast": "~0.19.1"
   },
   "devDependencies": {

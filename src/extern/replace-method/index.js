@@ -4,52 +4,63 @@ var build = recast.types.builders
 var parse = recast.parse
 var print = recast.print
 
+var prompt = require('prompt-sync')();
+
 module.exports = replacer
 
+function debug_code(node) {
+  return print(node).code
+}
+
 class FunctionSameNameInfo {
-  constructor(func, hasSameNameVarOrParam = null, declarationWithSameName = false) {
+  constructor(func, hasSameNameVarOrParam = false, funcDeclarationWithSameName = null) {
     this.func = func;
     this.hasSameNameVarOrParam = hasSameNameVarOrParam;
-    this.declarationWithSameName = declarationWithSameName;
+    this.funcDeclarationWithSameName = funcDeclarationWithSameName;
+
   }
 }
 
 class FunctionSameNameVarStack {
-  constructor(remainDeeperThan = 999) {
+  constructor(keepDeeperThan = 999) {
     this.stack = []
-    this.remainDeeperThan = remainDeeperThan
+    this.keepDeeperThan = keepDeeperThan
   }
 
   is_empty() {
     return this.stack.length == 0
   }
 
-  add(func, hasSameNameVarOrParam = null, declarationWithSameName = false) {
+  add(func, hasSameNameVarOrParam = null, funcDeclarationWithSameName = null) {
     if (this.stack.length > 0) {
       if (!hasSameNameVarOrParam)
         hasSameNameVarOrParam = this.stack[this.stack.length - 1].hasSameNameVarOrParam
 
-      if (!declarationWithSameName)
-        declarationWithSameName = this.stack[this.stack.length - 1].declarationWithSameName
+      if (!funcDeclarationWithSameName) {
+        funcDeclarationWithSameName = this.stack[this.stack.length - 1].funcDeclarationWithSameName
+      }
+
     }
 
-    this.stack.push(new FunctionSameNameInfo(func, hasSameNameVarOrParam, declarationWithSameName));
+    this.stack.push(new FunctionSameNameInfo(func, hasSameNameVarOrParam, funcDeclarationWithSameName));
   }
 
   pop() {
     this.stack.pop()
   }
 
-  ifSameNameWorking() {
+  sameNameVarOrParamIsWorking() {
     return this.stack.length > 0 && this.stack[this.stack.length - 1].hasSameNameVarOrParam
   }
 
-  maybeSameNameDeclaratonWorking() {
-    return this.stack.length > 1 && this.stack[this.stack.length - 2].declarationWithSameName
+  getFuncDeclarationWithSameName() {
+    // why >2? because a function named `n` must be at least of level 2
+    // webpack would not allocate level 1 functions  the name `n` for naming conflict with require `n`
+    return this.stack.length > 2 && this.stack[this.stack.length - 2].funcDeclarationWithSameName
   }
 
   willTooDeep() {
-    return this.stack.length >= this.remainDeeperThan + 1
+    return this.stack.length >= this.keepDeeperThan + 1
   }
 
   letSameNameWorking() {
@@ -62,17 +73,17 @@ class FunctionSameNameVarStack {
 
 }
 
-function replacer(ast, replaceRequires, remainDeeperThan) {
+function replacer(ast, config) {
   if (Buffer.isBuffer(ast)) ast = String(ast)
   if (typeof ast === 'string')
     ast = parse(ast)
 
-  var functionsStack = new FunctionSameNameVarStack(remainDeeperThan);
+  var replaceRequires = config.replaceRequires
+
+  var functionsStack = new FunctionSameNameVarStack(config.keepDeeperThan);
 
   // print code, used for debug
-  var debug_code = replace.code = function () {
-    return print(ast).code
-  }
+  replace.code = debug_code
   // why this line?
   // replace.replace = replace
 
@@ -96,10 +107,10 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
         // avoid traversing this subtree.
         if (replaceRequires == 'variable') return false;
 
-        if(functionsStack.willTooDeep()) return false;
+        if (functionsStack.willTooDeep()) return false;
 
-        // type FunctionDeclaration has id
-        var functionNameIsSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
+        // type FunctionDeclaration has the prop id
+        var boolDeclarationWithSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
 
         /**
          * function (e, t, n) {
@@ -123,7 +134,7 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
           return false;
         }
 
-        functionsStack.add(path.value, false, functionNameIsSameName);
+        functionsStack.add(path.value, false, path.value);
 
         this.traverse(path)
 
@@ -141,7 +152,7 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
          *
          * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
          */
-        if (functionNameIsSameName) {
+        if (boolDeclarationWithSameName) {
           functionsStack.log(`A function named ${methodPath[0]} declaraed: ${print(path).code} `)
           functionsStack.letSameNameWorking();
         }
@@ -174,12 +185,13 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
         // console.log(path)
         const result = size === 1 ? single(path.node) : nested(path.node)
 
-        if (result == 'samename') {
+        if (result == 'false') {
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
           return false;
         }
+
 
         if (result !== undefined) {
           // console.log(result)
@@ -194,18 +206,32 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
 
     function single(node) {
 
-      if (functionsStack.ifSameNameWorking()) return 'samename';
-
-
       var target = null;
+      var fun = null;
 
       switch (node.type) {
         case 'CallExpression':
-          if (replaceRequires == 'variable') {
-            target = node.callee;
-          } else {
+
+          if (replaceRequires == 'inline') {
+            if (functionsStack.sameNameVarOrParamIsWorking()) return 'false';
+
+            if (fun = functionsStack.getFuncDeclarationWithSameName()) {
+              var inDescendantsOfSameNameDeclaraton =
+                  config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun,methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
+
+
+              if (inDescendantsOfSameNameDeclaraton == 'keep') {
+                return 'false';
+              }
+            }
+
             // if n.n(x)
             target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
+
+          } else if (replaceRequires == 'variable') {
+            target = node.callee;
+          } else {
+            throw new Error("replaceRequires should be 'inline' or 'variable'")
           }
           break;
 
@@ -245,5 +271,16 @@ function replacer(ast, replaceRequires, remainDeeperThan) {
       return updater(node)
     }
   }
+}
+
+function ask(code,fun, method) {
+
+  console.log("ask")
+  console.log("found")
+  console.log(debug_code(code))
+  console.log("in this function:")
+  console.log(debug_code(fun))
+  var ans = prompt(`How to handle this ${method}? replace|[keep]`, 'keep');
+  return ans;
 }
 

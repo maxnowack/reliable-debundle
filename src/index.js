@@ -51,7 +51,13 @@ if (!config.moduleAst) {
 }
 
 config.replaceRequires = typeof config.replaceRequires === 'undefined' ? "inline" : config.replaceRequires;
-config.remainDeeperThan = typeof config.remainDeeperThan === 'undefined' ? 999 : parseInt(config.remainDeeperThan);
+
+config.keepDeeperThan = typeof config.keepDeeperThan === 'undefined' ? 999 : parseInt(config.keepDeeperThan);
+
+if( typeof config.inDescendantsOfSameNameDeclaraton === 'undefined')
+  config.inDescendantsOfSameNameDeclaraton = 'replace'
+else if(!['keep','replace','ask'].includes(config.inDescendantsOfSameNameDeclaraton))
+  config.inDescendantsOfSameNameDeclaraton = 'ask'
 
 // ----------------------------------------------------------------------------
 // Read in bundle
@@ -125,7 +131,7 @@ if (config.type === 'browserify') {
 console.log('* Reassembling requires...');
 const transformRequires = require('./transformRequires');
 modules = transformRequires(modules, config.knownPaths, config.entryPoint, config.type,
-    config.replaceRequires, config.remainDeeperThan);
+    config.replaceRequires, config);
 
 // ------------------------------------------------------------------------------
 // Take the array of modules and figure out where to put each module on disk.

@@ -1,5 +1,4 @@
 // debundle.config=debundle.config-inline.json
-// debundle.config=debundle.config-inline-remainDeeperThan.json
 !(function main(e) {
   var t = {};
 
