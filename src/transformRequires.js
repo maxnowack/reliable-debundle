@@ -25,7 +25,8 @@ function transformRequires(
     // If true, replace identifiers in the AST that map to require with the identifier `require`
     // If false, add to the top of the AST a `const require = n;` where n is the identifier that maps
     // to require in the module. See README for a better explaination.
-    replaceRequires = "inline"
+    replaceRequires = "inline",
+    remainDeeperThan=999
 ) {
   return modules.map(mod => {
     let moduleDescriptor = mod.code.body;
@@ -48,7 +49,7 @@ function transformRequires(
       // Unlike the below transforms, we always want this one no matter the name of the require
       // function to run since we're doning more than just changing the require functon name.
       if (requireFunctionIdentifier) {
-        replace(mod.code,replaceRequires)(
+        replace(mod.code,replaceRequires,remainDeeperThan)(
             requireFunctionIdentifier.name, // the function that require is in within the code.
             node => {
 

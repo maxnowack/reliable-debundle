@@ -1,4 +1,5 @@
 // debundle.config=debundle.config-inline.json
+// debundle.config=debundle.config-inline-remainDeeperThan.json
 !(function main(e) {
   var t = {};
 
@@ -79,16 +80,19 @@
     /// n(0)
     e.exports = n(1)
   }
-  , function (e, t, n) {
+  , function (e, t, n) {  // deep: 0
     /// n(1)
 
-    // there is n which is not require
-    function n() {
-      return n(0)
+    function n(param) {
+
+      if(param===0) return 3;
+
+      return function(){
+        n(0)
+      }
     }
 
-    n(s)
-
+    var m=n()();
 
   }
 ]);

@@ -42,11 +42,13 @@ Imaging this module is being debundled:
 ```
 // ...
 function (module, exports, n) {
-  const myOtherModule = n(5);
-  console.log(myOtherModule);
-  function nestedFunction() {
-    const n = 123;
+
+  function n() {
+    return function(){
+      n(0)
+    }
   }
+
 }
 // ...
 ```
