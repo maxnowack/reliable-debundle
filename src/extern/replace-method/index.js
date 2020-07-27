@@ -21,7 +21,7 @@ class FunctionSameNameInfo {
   }
 }
 
-class FunctionSameNameVarStack {
+class FunctionSameNameStack {
   constructor(keepDeeperThan = 999) {
     this.stack = []
     this.keepDeeperThan = keepDeeperThan
@@ -80,7 +80,7 @@ function replacer(ast, config) {
 
   var replaceRequires = config.replaceRequires
 
-  var functionsStack = new FunctionSameNameVarStack(config.keepDeeperThan);
+  var functionsStack = new FunctionSameNameStack(config.keepDeeperThan);
 
   // print code, used for debug
   replace.code = debug_code
