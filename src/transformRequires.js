@@ -3,7 +3,9 @@ const path = require('path');
 const getModuleLocation = require('./utils/getModuleLocation');
 
 // only for debugging in WebStrom watch
-var recast = require('recast');var parse = recast.parse;var print = recast.print;
+var recast = require('recast');
+var parse = recast.parse;
+var print = recast.print;
 
 // Transform require calls to match the path of a given file.
 // Here's the problem this transformation solves. Say I've got a file `foo` and a file `bar`, and
@@ -49,12 +51,12 @@ function transformRequires(
       // Unlike the below transforms, we always want this one no matter the name of the require
       // function to run since we're doning more than just changing the require functon name.
       if (requireFunctionIdentifier) {
-        replace(mod.code,config)(
+        replace(mod.code, config)(
             requireFunctionIdentifier.name, // the function that require is in within the code.
             node => {
 
               // only for debugging in WebStrom watch
-              print  = print
+              print = print
 
               switch (node.type) {
                 case 'CallExpression':
@@ -73,8 +75,12 @@ function transformRequires(
                     };
                   }
 
+                  if (node.hasOwnProperty('sameNameArgument')) {
+                    return updateArgument(node, replaceRequires, requireFunctionIdentifier)
+                  }
+
                   if (node.callee.type == 'MemberExpression') {
-                    return updateMemberExpression(node.callee, node.arguments, replaceRequires, requireFunctionIdentifier);
+                    return updateMemberExpression(node, replaceRequires, requireFunctionIdentifier);
                   }
 
                   // If a module id is in the require, then do the require.
@@ -168,7 +174,7 @@ function transformRequires(
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
         if (replaceRequires === 'inline') {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
-          replace(mod.code,config)(
+          replace(mod.code, config)(
               moduleIdentifier.name, // the function that require is in within the code.
               node => {
                 node.name = 'module';
@@ -193,7 +199,7 @@ function transformRequires(
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
         if (replaceRequires === 'inline') {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
-          replace(mod.code,config)(
+          replace(mod.code, config)(
               exportsIdentifier.name, // the function that require is in within the code.
               node => {
                 node.name = 'exports';
@@ -241,15 +247,39 @@ function updateRequireVar(replaceRequires, requireFunctionIdentifier) {
   } : requireFunctionIdentifier
 }
 
-function updateMemberExpression(callee, arguments, replaceRequires, requireFunctionIdentifier) {
-  var node= {
-    "type": "CallExpression",
-    "callee": {
-      "type": "MemberExpression",
-      "object": updateRequireVar(replaceRequires,requireFunctionIdentifier),
-      "property": callee.property,
-    },
-    "arguments":arguments
+function updateMemberExpression(node, replaceRequires, requireFunctionIdentifier) {
+  if (replaceRequires === 'inline') {
+    node = {
+      "type": "CallExpression",
+      "callee": {
+        "type": "MemberExpression",
+        "object": updateRequireVar(replaceRequires, requireFunctionIdentifier),
+        "property": node.callee.property,
+      },
+      "arguments": node.arguments
+    }
+  }
+
+  return node;
+}
+
+function updateArgument(node, replaceRequires, requireFunctionIdentifier) {
+  if (replaceRequires === 'inline') {
+    var arguments = node.arguments.map((a) => {
+      if (a.name == requireFunctionIdentifier.name)
+        return {
+          'type': 'Identifier',
+          'name': 'require',
+        }
+      else
+        return a
+    })
+
+    node = {
+      "type": 'CallExpression',
+      "callee": node.callee,
+      "arguments": arguments
+    }
   }
   return node;
 

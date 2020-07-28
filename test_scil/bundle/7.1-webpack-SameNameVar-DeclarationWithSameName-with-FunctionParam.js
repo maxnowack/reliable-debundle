@@ -84,17 +84,17 @@
     void 0 === (o = "function" == typeof (r = function () {
           "use strict";
 
-          function e(e, t) {
-          }
+          // function e(e, t) {
+          // }
+          //
+          // function t(e, t) {
+          // }
 
-          function t(e, t) {
-          }
-
-          function n(e, n, r) {
+          function n(e, n, r) {  // there are name n and param n
           }
 
           function c() {
-            return n([])
+            return n(0) // not require
           }
 
 

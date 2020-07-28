@@ -22,7 +22,7 @@ class FunctionSameNameInfo {
 }
 
 class FunctionSameNameStack {
-  constructor(methodPath,keepDeeperThan = 999) {
+  constructor(methodPath, keepDeeperThan = 999) {
     this.methodPath = methodPath;
     this.keepDeeperThan = keepDeeperThan
     this.stack = []
@@ -97,7 +97,7 @@ function replacer(ast, config) {
 
     var size = methodPath.length
 
-    var functionsStack = new FunctionSameNameStack(methodPath,config.keepDeeperThan);
+    var functionsStack = new FunctionSameNameStack(methodPath, config.keepDeeperThan);
 
     visit(ast, {
 
@@ -114,6 +114,14 @@ function replacer(ast, config) {
         // type FunctionDeclaration has the prop id
         var boolDeclarationWithSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
 
+        function letSameNameWorking() {
+          if (boolDeclarationWithSameName) {
+            functionsStack.log(`A function named ${methodPath[0]} declaraed: ${debug_code(path)} `)
+            functionsStack.letSameNameWorking();
+          }
+        }
+
+
         /**
          * function (e, t, n) {
          *  var u = n(1);
@@ -123,25 +131,28 @@ function replacer(ast, config) {
          * }
          */
 
-        let paramHasSameName = functionsStack.is_empty() ? null : path.value.params.some(
+        let boolParamHasSameName = functionsStack.is_empty() ? null : path.value.params.some(
             (param) => param.name == methodPath[0])
 
-        if (paramHasSameName) {
+        if (boolParamHasSameName) {
           var code = debug_code(path.value)
           code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
           functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${code} `)
+
+          letSameNameWorking();
+
           // return false to
           // indicate that the traversal need not continue any further down this subtree.
           // https://github.com/benjamn/ast-types#ast-traversal
           return false;
+        } else {
+
+          functionsStack.add(path.value, false, boolDeclarationWithSameName ? path.value : null);
+
+          this.traverse(path)
+
+          functionsStack.pop()
         }
-
-        functionsStack.add(path.value, false, boolDeclarationWithSameName?path.value:null);
-
-        this.traverse(path)
-
-        functionsStack.pop()
-
 
         /**
          * Should be underneath `this.traverse(path)`.
@@ -154,10 +165,7 @@ function replacer(ast, config) {
          *
          * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
          */
-        if (boolDeclarationWithSameName) {
-          functionsStack.log(`A function named ${methodPath[0]} declaraed: ${debug_code(path)} `)
-          functionsStack.letSameNameWorking();
-        }
+        letSameNameWorking();
 
       }
 
@@ -220,7 +228,7 @@ function replacer(ast, config) {
 
             if (fun = functionsStack.getFuncDeclarationWithSameName()) {
               var inDescendantsOfSameNameDeclaraton =
-                  config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun,methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
+                  config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun, methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
 
 
               if (inDescendantsOfSameNameDeclaraton == 'keep') {
@@ -228,7 +236,7 @@ function replacer(ast, config) {
               }
             }
 
-            // if n.n(x)
+            // if n.d(x)
             target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
 
           } else if (replaceRequires == 'variable') {
@@ -247,9 +255,26 @@ function replacer(ast, config) {
       }
 
 
-      if (target && target.name !== methodPath[0]) return;
+      if (target && target.name !== methodPath[0] && !(setSameNameArgument(node))) {
+        return
+      }
+
 
       return updater(node)
+    }
+
+    function setSameNameArgument(node) {
+
+      // only support level 1 function with samename arguments
+      if (functionsStack.stack.length == 1
+          && node.arguments.some((a) => {
+            if (a.name == methodPath[0]) {
+              node.sameNameArgument = true;
+              return true;
+            }
+          })) {
+        return true;
+      }
     }
 
     function nested(node) {
@@ -276,7 +301,7 @@ function replacer(ast, config) {
   }
 }
 
-function ask(code,fun, method) {
+function ask(code, fun, method) {
 
   console.log("ask")
   console.log("found")
