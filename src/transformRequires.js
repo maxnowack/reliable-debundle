@@ -172,7 +172,7 @@ function transformRequires(
       // mangled variable.
       let moduleIdentifier = mod.code.params[type === 'webpack' ? 0 : 1];
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
-        if (replaceRequires === 'inline') {
+        if (config.replaceModules === 'inline') {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
           replace(mod.code, config)(
               moduleIdentifier.name, // the function that require is in within the code.
@@ -182,7 +182,7 @@ function transformRequires(
               }
           );
         } else if (
-            replaceRequires === 'variable' &&
+            config.replaceModules === 'variable' &&
             mod.code && mod.code.body && mod.code.body.body
         ) {
           // At the top of the module closure, set up an alias to the `module` identifier.
@@ -197,7 +197,7 @@ function transformRequires(
       // Dito to the above for `exports`
       let exportsIdentifier = mod.code.params[type === 'webpack' ? 1 : 2];
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
-        if (replaceRequires === 'inline') {
+        if (config.replaceExports === 'inline') {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
           replace(mod.code, config)(
               exportsIdentifier.name, // the function that require is in within the code.
@@ -207,7 +207,7 @@ function transformRequires(
               }
           );
         } else if (
-            replaceRequires === 'variable' &&
+            config.replaceExports === 'variable' &&
             mod.code && mod.code.body && mod.code.body.body
         ) {
           // At the top of the module closure, set up an alias to the module identifier.
@@ -267,10 +267,7 @@ function updateArgument(node, replaceRequires, requireFunctionIdentifier) {
   if (replaceRequires === 'inline') {
     var arguments = node.arguments.map((a) => {
       if (a.name == requireFunctionIdentifier.name)
-        return {
-          'type': 'Identifier',
-          'name': 'require',
-        }
+        return updateRequireVar(replaceRequires, requireFunctionIdentifier)
       else
         return a
     })

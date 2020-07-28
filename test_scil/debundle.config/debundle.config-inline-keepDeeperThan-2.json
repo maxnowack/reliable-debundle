@@ -2,8 +2,12 @@
   "type": "webpack",
   "entryPoint": 0,
   "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+
   "replaceRequires": "inline",
   "keepDeeperThan": 2,
+
   "inDescendantsOfSameNameDeclaraton": "replace",
   "knownPaths": {}
 }

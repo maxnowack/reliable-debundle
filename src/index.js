@@ -51,6 +51,8 @@ if (!config.moduleAst) {
 }
 
 config.replaceRequires = typeof config.replaceRequires === 'undefined' ? "inline" : config.replaceRequires;
+config.replaceModules = typeof config.replaceModules === 'undefined' ? "inline" : config.replaceModules;
+config.replaceExports = typeof config.replaceExports === 'undefined' ? "inline" : config.replaceExports;
 
 config.keepDeeperThan = typeof config.keepDeeperThan === 'undefined' ? 999 : parseInt(config.keepDeeperThan);
 

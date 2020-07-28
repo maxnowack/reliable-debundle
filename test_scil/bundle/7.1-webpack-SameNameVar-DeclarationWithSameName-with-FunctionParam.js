@@ -81,7 +81,7 @@
   }
   , function (e, t, n) {
     var r, o;
-    void 0 === (o = "function" == typeof (r = function () {
+    o = "function" == typeof (r = function () {
           "use strict";
 
           // function e(e, t) {
@@ -99,6 +99,6 @@
 
 
         }
-    ) ? r.call(t, n, t, e) : r) || (e.exports = o)
+    ) ? r.call(3) : r
   }
 ]);

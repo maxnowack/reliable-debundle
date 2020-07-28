@@ -6,7 +6,7 @@ const execSync = require('child_process').execSync;
 const bundle_dir = path.resolve(__dirname, 'bundle')
 const debundle_dir = path.resolve(__dirname, 'debundle')
 const debundle_config_dir = path.resolve(__dirname, 'debundle.config')
-const tmp_output_dir = path.resolve(__dirname, 'tmp_debundle')
+const tmp_output_dir = path.resolve(__dirname, 'tmp_debundle_result')
 const debundle_js_cli = path.resolve(__dirname, "../src/index.js")
 
 // ----------------------------------------------------------------------------
