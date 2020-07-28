@@ -22,9 +22,10 @@ class FunctionSameNameInfo {
 }
 
 class FunctionSameNameStack {
-  constructor(keepDeeperThan = 999) {
-    this.stack = []
+  constructor(methodPath,keepDeeperThan = 999) {
+    this.methodPath = methodPath;
     this.keepDeeperThan = keepDeeperThan
+    this.stack = []
   }
 
   is_empty() {
@@ -80,7 +81,6 @@ function replacer(ast, config) {
 
   var replaceRequires = config.replaceRequires
 
-  var functionsStack = new FunctionSameNameStack(config.keepDeeperThan);
 
   // print code, used for debug
   replace.code = debug_code
@@ -96,6 +96,8 @@ function replacer(ast, config) {
         : [methodPath]
 
     var size = methodPath.length
+
+    var functionsStack = new FunctionSameNameStack(methodPath,config.keepDeeperThan);
 
     visit(ast, {
 
@@ -134,7 +136,7 @@ function replacer(ast, config) {
           return false;
         }
 
-        functionsStack.add(path.value, false, path.value);
+        functionsStack.add(path.value, false, boolDeclarationWithSameName?path.value:null);
 
         this.traverse(path)
 
@@ -202,7 +204,8 @@ function replacer(ast, config) {
       ,
     });
 
-    return replace
+    // why this line? debug?
+    // return replace
 
     function single(node) {
 
