@@ -155,7 +155,7 @@ function replacer(ast, config) {
          * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
          */
         if (boolDeclarationWithSameName) {
-          functionsStack.log(`A function named ${methodPath[0]} declaraed: ${print(path).code} `)
+          functionsStack.log(`A function named ${methodPath[0]} declaraed: ${debug_code(path)} `)
           functionsStack.letSameNameWorking();
         }
 
@@ -280,9 +280,10 @@ function ask(code,fun, method) {
 
   console.log("ask")
   console.log("found")
-  console.log(debug_code(code))
+  console.log(debug_code(func_code))
   console.log("in this function:")
-  console.log(debug_code(fun))
+  var func_code = debug_code(fun)
+  console.log(func_code.length > 200 ? func_code.substring(0, 200) + ' ...' : func_code)
   var ans = prompt(`How to handle this ${method}? replace|[keep]`, 'keep');
   return ans;
 }
