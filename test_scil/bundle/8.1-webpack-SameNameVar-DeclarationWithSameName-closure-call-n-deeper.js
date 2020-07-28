@@ -1,2 +1,2 @@
 // debundle.config=debundle.config-inline-keepDeeperThan-2.json
-// bundle_file_name=8-
+// bundle_file_name=8.0-
