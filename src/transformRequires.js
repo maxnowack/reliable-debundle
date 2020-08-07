@@ -51,120 +51,10 @@ function transformRequires(
       // Unlike the below transforms, we always want this one no matter the name of the require
       // function to run since we're doning more than just changing the require functon name.
       if (requireFunctionIdentifier) {
-        replace(mod.code, config)(
-            requireFunctionIdentifier.name, // the function that require is in within the code.
-            node => {
 
-              // only for debugging in WebStrom watch
-              print = print
+        replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config)
 
-              switch (node.type) {
-                case 'CallExpression':
-                  // If require is called bare (why would this ever happen? IDK, it did in a bundle
-                  // once), then return AST without any arguments.
-                  if (node.arguments.length === 0) {
-                    return {
-                      type: 'CallExpression',
-                      // If replacing all require calls in the ast with the identifier `require`, use
-                      // that identifier (`require`). Otherwise, keep it the same.
-                      callee: replaceRequires === 'inline' ? {
-                        type: 'Identifier',
-                        name: 'require',
-                      } : requireFunctionIdentifier,
-                      arguments: [],
-                    };
-                  }
-
-                  if (node.hasOwnProperty('sameNameArgument')) {
-                    return updateArgument(node, replaceRequires, requireFunctionIdentifier)
-                  }
-
-                  if (node.callee.type == 'MemberExpression') {
-                    return updateMemberExpression(node, replaceRequires, requireFunctionIdentifier);
-                  }
-
-                  // If a module id is in the require, then do the require.
-                  if (node.arguments[0].type === 'Literal') {
-                    const moduleToRequire = modules.find(i => i.id === node.arguments[0].value);
-
-                    // FIXME:
-                    // In the spotify bundle someone did a require(null)? What is that supposed to do?
-                    if (!moduleToRequire) {
-                      // throw new Error(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
-                      console.warn(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
-                      return node;
-                    }
-
-                    // Get a relative path from the current module to the module to require in.
-                    let moduleLocation = path.relative(
-                        // This module's path
-                        path.dirname(getModuleLocation(modules, mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId)),
-                        // The module to import relative to the current module
-                        getModuleLocation(modules, moduleToRequire, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId)
-                    );
-
-                    // If the module path references a node_module, then remove the node_modules prefix
-                    if (moduleLocation.indexOf('node_modules/') !== -1) {
-                      moduleLocation = `${moduleLocation.match(/node_modules\/(.+)$/)[1]}`
-                    } else if (!moduleLocation.startsWith('.')) {
-                      // Make relative paths start with a ./
-                      moduleLocation = `./${moduleLocation}`;
-                    }
-
-                    return {
-                      type: 'CallExpression',
-                      // If replacing all require calls in the ast with the identifier `require`, use
-                      // that identifier (`require`). Otherwise, keep it the same.
-                      callee: replaceRequires === 'inline' ? {
-                        type: 'Identifier',
-                        name: 'require',
-                      } : requireFunctionIdentifier,
-                      arguments: [
-                        // Substitute in the module location on disk
-                        {type: 'Literal', value: moduleLocation, raw: moduleLocation},
-                        ...node.arguments.slice(1),
-                      ],
-                    };
-                  } else if (node.arguments[0].type === 'Identifier') {
-                    if (replaceRequires === 'inline') {
-                      // If replacing the require symbol inline, then replace with the identifier `require`
-                      return {
-                        type: 'CallExpression',
-                        callee: {
-                          type: 'Identifier',
-                          name: 'require',
-                        },
-                        arguments: node.arguments,
-                      };
-                    } else {
-                      // Otherwise, just pass through the AST.
-                      return node;
-                    }
-                  }
-
-                case 'Identifier':
-                  return replaceRequires === 'inline' ? {
-                    type: 'Identifier',
-                    name: 'require',
-                  } : requireFunctionIdentifier;
-              }
-              ;
-            }
-        );
-
-        // Prepend some ast that aliases the minified require variable to `require` if require
-        // hasn't been replaced inline in the code.
-        if (
-            replaceRequires === 'variable' && requireFunctionIdentifier.name !== 'require' &&
-            mod.code && mod.code.body && mod.code.body.body
-        ) {
-          // At the top of the module closure, set up an alias to the `require` identifier.
-          // ie, `const n = require;`
-          console.log(`* Aliasing ${requireFunctionIdentifier.name} with 'require'...`);
-          mod.code.body.body.unshift(
-              buildVariableAssignment(requireFunctionIdentifier, {type: 'Identifier', name: 'require'})
-          );
-        }
+        add_variable(config, 'replaceRequires', requireFunctionIdentifier, mod, 'require')
       }
 
       // Also, make sure that the `module` that was injected into the closure sorrounding the module
@@ -181,16 +71,9 @@ function transformRequires(
                 return node;
               }
           );
-        } else if (
-            config.replaceModules === 'variable' &&
-            mod.code && mod.code.body && mod.code.body.body
-        ) {
-          // At the top of the module closure, set up an alias to the `module` identifier.
-          // ie, `const t = module;`
-          console.log(`* Aliasing ${moduleIdentifier.name} with 'module'...`);
-          mod.code.body.body.unshift(
-              buildVariableAssignment(moduleIdentifier, {type: 'Identifier', name: 'module'})
-          );
+        } else {
+
+          add_variable(config, 'replaceModules', moduleIdentifier, mod, 'module')
         }
       }
 
@@ -206,16 +89,8 @@ function transformRequires(
                 return node;
               }
           );
-        } else if (
-            config.replaceExports === 'variable' &&
-            mod.code && mod.code.body && mod.code.body.body
-        ) {
-          // At the top of the module closure, set up an alias to the module identifier.
-          // ie, `const t = module;`
-          console.log(`* Aliasing ${exportsIdentifier.name} with 'exports'...`);
-          mod.code.body.body.unshift(
-              buildVariableAssignment(exportsIdentifier, {type: 'Identifier', name: 'exports'})
-          );
+        } else {
+          add_variable(config, 'replaceExports', exportsIdentifier, mod, 'exports')
         }
       }
     } else {
@@ -226,7 +101,136 @@ function transformRequires(
   });
 }
 
-function buildVariableAssignment(variableIdentifier, contentIdentifier) {
+/**
+ * Prepend some ast that aliases the minified require/module/exports variable to `require` 'module' or 'exports'
+ * if them hasn't been replaced inline in the code.
+ *
+ * @param identifier
+ * @param mod
+ * @param name 'require', 'module' or 'exports'
+ *
+ */
+function add_variable(config, configItem, identifier, mod, name) {
+  if (
+      config[configItem] === 'variable' &&
+      identifier.name !== name &&
+      mod.code && mod.code.body && mod.code.body.body
+  ) {
+    // At the top of the module closure, set up an alias to the module identifier.
+    // ie, `const t = module;`
+    console.log(`* Aliasing ${identifier.name} with '${name}'...`);
+    mod.code.body.body.unshift(
+        build_VariableAssignment(identifier, {type: 'Identifier', name: name})
+    );
+
+  }
+}
+
+function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config) {
+
+  replace(mod.code, config)(
+      requireFunctionIdentifier.name, // the function that require is in within the code.
+      node => {
+
+        // only for debugging in WebStrom watch
+        print = print
+
+        switch (node.type) {
+          case 'CallExpression':
+            // If require is called bare (why would this ever happen? IDK, it did in a bundle
+            // once), then return AST without any arguments.
+            if (node.arguments.length === 0) {
+              return {
+                type: 'CallExpression',
+                // If replacing all require calls in the ast with the identifier `require`, use
+                // that identifier (`require`). Otherwise, keep it the same.
+                callee: replaceRequires === 'inline' ? {
+                  type: 'Identifier',
+                  name: 'require',
+                } : requireFunctionIdentifier,
+                arguments: [],
+              };
+            }
+
+            if (node.hasOwnProperty('sameNameArgument')) {
+              return update_Argument(node, replaceRequires, requireFunctionIdentifier)
+            }
+
+            if (node.callee.type == 'MemberExpression') {
+              return update_MemberExpression(node, replaceRequires, requireFunctionIdentifier);
+            }
+
+            // If a module id is in the require, then do the require.
+            if (node.arguments[0].type === 'Literal') {
+              const moduleToRequire = modules.find(i => i.id === node.arguments[0].value);
+
+              // FIXME:
+              // In the spotify bundle someone did a require(null)? What is that supposed to do?
+              if (!moduleToRequire) {
+                // throw new Error(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
+                console.warn(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
+                return node;
+              }
+
+              // Get a relative path from the current module to the module to require in.
+              let moduleLocation = path.relative(
+                  // This module's path
+                  path.dirname(getModuleLocation(modules, mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId)),
+                  // The module to import relative to the current module
+                  getModuleLocation(modules, moduleToRequire, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId)
+              );
+
+              // If the module path references a node_module, then remove the node_modules prefix
+              if (moduleLocation.indexOf('node_modules/') !== -1) {
+                moduleLocation = `${moduleLocation.match(/node_modules\/(.+)$/)[1]}`
+              } else if (!moduleLocation.startsWith('.')) {
+                // Make relative paths start with a ./
+                moduleLocation = `./${moduleLocation}`;
+              }
+
+              return {
+                type: 'CallExpression',
+                // If replacing all require calls in the ast with the identifier `require`, use
+                // that identifier (`require`). Otherwise, keep it the same.
+                callee: replaceRequires === 'inline' ? {
+                  type: 'Identifier',
+                  name: 'require',
+                } : requireFunctionIdentifier,
+                arguments: [
+                  // Substitute in the module location on disk
+                  {type: 'Literal', value: moduleLocation, raw: moduleLocation},
+                  ...node.arguments.slice(1),
+                ],
+              };
+            } else if (node.arguments[0].type === 'Identifier') {
+              if (replaceRequires === 'inline') {
+                // If replacing the require symbol inline, then replace with the identifier `require`
+                return {
+                  type: 'CallExpression',
+                  callee: {
+                    type: 'Identifier',
+                    name: 'require',
+                  },
+                  arguments: node.arguments,
+                };
+              } else {
+                // Otherwise, just pass through the AST.
+                return node;
+              }
+            }
+
+          case 'Identifier':
+            return replaceRequires === 'inline' ? {
+              type: 'Identifier',
+              name: 'require',
+            } : requireFunctionIdentifier;
+        }
+        ;
+      }
+  );
+}
+
+function build_VariableAssignment(variableIdentifier, contentIdentifier) {
   return {
     "type": "VariableDeclaration",
     "declarations": [
@@ -240,20 +244,20 @@ function buildVariableAssignment(variableIdentifier, contentIdentifier) {
   };
 }
 
-function updateRequireVar(replaceRequires, requireFunctionIdentifier) {
+function update_RequireVar(replaceRequires, requireFunctionIdentifier) {
   return replaceRequires === 'inline' ? {
     type: 'Identifier',
     name: 'require',
   } : requireFunctionIdentifier
 }
 
-function updateMemberExpression(node, replaceRequires, requireFunctionIdentifier) {
+function update_MemberExpression(node, replaceRequires, requireFunctionIdentifier) {
   if (replaceRequires === 'inline') {
     node = {
       "type": "CallExpression",
       "callee": {
         "type": "MemberExpression",
-        "object": updateRequireVar(replaceRequires, requireFunctionIdentifier),
+        "object": update_RequireVar(replaceRequires, requireFunctionIdentifier),
         "property": node.callee.property,
       },
       "arguments": node.arguments
@@ -263,11 +267,11 @@ function updateMemberExpression(node, replaceRequires, requireFunctionIdentifier
   return node;
 }
 
-function updateArgument(node, replaceRequires, requireFunctionIdentifier) {
+function update_Argument(node, replaceRequires, requireFunctionIdentifier) {
   if (replaceRequires === 'inline') {
     var arguments = node.arguments.map((a) => {
       if (a.name == requireFunctionIdentifier.name)
-        return updateRequireVar(replaceRequires, requireFunctionIdentifier)
+        return update_RequireVar(replaceRequires, requireFunctionIdentifier)
       else
         return a
     })
