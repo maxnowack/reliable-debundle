@@ -16,9 +16,14 @@ file: `src/extern/replace-method/index.js`
 
 4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
 
-5. v0.5.3.4 support `"replaceRequires": "inline,variable",`
+5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
 
 ## preferable configuration for webpack
+
+The simplest way is use `"replaceRequires": "variable",` but in the produced js files,   
+`n(1)` would not support code jumping in Intellij Idea family products currently.
+To use code jumping, improve Idea, or use `"replaceRequires": "inline,variable",`
+
 ```json
 {
   "type": "webpack",
@@ -34,6 +39,9 @@ file: `src/extern/replace-method/index.js`
   "knownPaths": {}
 }
 ```
+
+Always use `variable` for `replaceModules` and `replaceExports`. Because `inline` for both is not supported fully, most times
+`e` and `t` would not be replaced.
 
 ### scil/debundle support replacing `n` as a function parameter
 
@@ -111,6 +119,9 @@ And an extra config "inDescendantsOfSameNameDeclaraton"
 
     function It(e) {
       var n = p(e); // ★★★ this  n  is not `require`, just a SameNameVar. code: `boolVarHasSameName`
+      // Prior to v0.5.3.3(official debundle), 
+      // you have to use `"replaceRequires": "variable",`, 
+      // otherwise you got  `require(99)` from `n(99)`.  
       return n && n(99);
     }
 
@@ -143,12 +154,14 @@ And an extra config "inDescendantsOfSameNameDeclaraton"
 
 ```
 
-Prior to v0.5.3.3, you have to use `"replaceRequires": "variable",`, otherwise you got  `require(99)` from `n(99)` in the code above.  
+Related Code:   
+`visitFunction` and   
+`visitVariableDeclaration` in `src/extern/replace-method/index.js`    
 
-From v0.5.3.3, you can use `"replaceRequires": "inline".  
-Code: `visitFunction` and `visitVariableDeclaration` in `src/extern/replace-method/index.js`  
-Test: `3--webpack-SameNameVar-visitVariableDeclaration.js`  and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
-```
+Related Test:   
+`3--webpack-SameNameVar-visitVariableDeclaration.js`   
+and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
+
 ## tools
 
 ### online tool to try parser
