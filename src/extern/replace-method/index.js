@@ -6,6 +6,10 @@ var print = recast.print
 
 var prompt = require('prompt-sync')();
 
+var inlineOrVariable = require('../../utils/inlineOrVariable');
+var should_replace=inlineOrVariable.should_replace;
+// var should_add_var=inlineOrVariable.should_add_var;
+
 module.exports = replacer
 
 function debug_code(node) {
@@ -179,10 +183,10 @@ function replacer(ast, config) {
          *  }
          * }
          */
-        var varHasSameName = path.value.declarations.some(
+        var boolVarHasSameName = path.value.declarations.some(
             (dec) => dec.id.type === 'Identifier' && dec.id.name == methodPath[0]
         )
-        if (varHasSameName) {
+        if (boolVarHasSameName) {
           functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
           functionsStack.letSameNameWorking();
         }
@@ -223,20 +227,23 @@ function replacer(ast, config) {
       switch (node.type) {
         case 'CallExpression':
 
-          if (replaceRequires == 'inline') {
+          if (should_replace(replaceRequires)) {
+
             if (functionsStack.sameNameVarOrParamIsWorking()) return 'false';
 
             if (fun = functionsStack.getFuncDeclarationWithSameName()) {
               var inDescendantsOfSameNameDeclaraton =
                   config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun, methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
 
-
               if (inDescendantsOfSameNameDeclaraton == 'keep') {
                 return 'false';
               }
             }
 
-            // if n.d(x)
+            // MemberExpression:
+            //   n.d(x)
+            // or
+            //   {}.call(n) // how to handle it ? see: hasSameNameVarOrParam
             target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
 
           } else if (replaceRequires == 'variable') {
@@ -255,7 +262,7 @@ function replacer(ast, config) {
       }
 
 
-      if (target && target.name !== methodPath[0] && !(setSameNameArgument(node))) {
+      if (target && target.name !== methodPath[0] && !(hasSameNameArgument(node))) {
         return
       }
 
@@ -263,7 +270,7 @@ function replacer(ast, config) {
       return updater(node)
     }
 
-    function setSameNameArgument(node) {
+    function hasSameNameArgument(node) {
 
       // only support level 1 function with samename arguments
       if (functionsStack.stack.length == 1

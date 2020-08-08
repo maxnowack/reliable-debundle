@@ -1,6 +1,7 @@
 ![Debundle](debundle_logo.png)
 
-# update
+# scil
+## update
 
 1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
   1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
@@ -15,17 +16,120 @@ file: `src/extern/replace-method/index.js`
 
 4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
 
-# tools
+5. v0.5.3.4 support `"replaceRequires": "inline,variable",`
 
-## online tool to try parser
+## preferable configuration for webpack
+```json
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+
+  "keepDeeperThan": 3,
+  "inDescendantsOfSameNameDeclaraton": "keep",
+
+  "replaceRequires": "inline,variable",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+  "knownPaths": {}
+}
+```
+
+### curbs on `"replaceRequires": "inline",` 
+In old debundle,`inline` will replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
+
+#### "keepDeeperThan" provided for users
+
+`"keepDeeperThan": 2,` would make debundle ignore everything in functions with level 3 or deeper.
+
+see examples 8.0 and 8.1 in test_scil/bundle
+  
+
+```javascript
+function (e, t, n) {  // deep: 0
+    /// as n(1)
+
+    n(0);    // this is require
+
+    function deep1() {   // deep: 1
+
+      return function n(param) {  // deep: 2
+
+        if (param === 0) return 'from the deep2 n, not require n';
+
+        return function () {    // deep: 3
+          return n(0)  // deep2 n, not require n
+        }
+      }
+    }
+
+
+    var m = deep1()()();
+
+    console.log(m);
+
+  }
+```
+
+#### inherent limitation by scil/debundle: SameNameVar
+
+And an extra config "inDescendantsOfSameNameDeclaraton"
+
+```
+  function (e, t, n) {  // ★★★ this n  is  `require`
+    var x = n(0);
+
+    function It(e) {
+      var n = p(e); // ★★★ this  n  is not `require`, just a SameNameVar. code: `boolVarHasSameName`
+      return n && n(99);
+    }
+
+    function b(e, t, n) { // ★★★ this  n  is not `require`, just a SameNameVar. code: `boolParamHasSameName`
+        return n(99);
+    }
+
+    function c(){    // deep: 1
+        function n(){} // ★★★ this  n  is not `require`, just a SameNameVar. code: `boolDeclarationWithSameName`
+    }
+
+    function deep1() {   // deep: 1
+
+      return function n(param) {  // deep: 2
+
+        if (param === 0) return 'from the deep2 n, not `require` ';
+
+        return function () {    // deep: 3
+          return n(0)  // ★★★ deep2 n, not `require`.  
+                       // ★★★ Currently scil/debunble sees it as `require`, 
+                       // but adds a extra config `"inDescendantsOfSameNameDeclaraton": "keep",`
+                       // or `"inDescendantsOfSameNameDeclaraton": "ask",`
+        }
+      }
+    }
+
+
+    var m = deep1()()();
+  }
+
+```
+
+Prior to v0.5.3.3, you have to use `"replaceRequires": "variable",`, otherwise you got  `require(99)` from `n(99)` in the code above.  
+
+From v0.5.3.3, you can use `"replaceRequires": "inline".  
+Code: `visitFunction` and `visitVariableDeclaration` in `src/extern/replace-method/index.js`  
+Test: `3--webpack-SameNameVar-visitVariableDeclaration.js`  and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
+```
+## tools
+
+### online tool to try parser
 - https://astexplorer.net/ support multiple parsers
 - [Esprima parser](https://esprima.org/demo/parse.html)
 
-## libs
+### libs
 - https://github.com/benjamn/recast  
 - https://github.com/benjamn/ast-types/blob/master/def/core.ts  
 
-## how to view the code of an ast node?
+### how to view the code of an ast node?
 ```
 var recast = require('recast');
 var print = recast.print;
@@ -129,31 +233,6 @@ Not officially. However, if a bundle shares the same type module layout as Brows
 may be possible to set the [moduleAst](https://github.com/1egoman/debundle/blob/master/DOCS.md#moduleast)
 configuration option to point to the location of the modules.
 
-### SameNameVar
-
-```
-  function (e, t, n) {  // ★★★ this n  is  require
-    var x = n(0);
-
-    function It(e) {
-      var n = p(e); // ★★★ this  n  is not require
-      return n && n(99);
-    }
-
-    function b(e, t, n) { // ★★★ this  n  is not require
-        return n(99);
-    }
-
-  }
-
-```
-
-Prior to v0.5.3.3, you have to use `"replaceRequires": "variable",`, otherwise you got  `require(99)` from `n(99)` in the code above.  
-
-From v0.5.3.3, you can use `"replaceRequires": "inline".  
-Code: `visitFunction` and `visitVariableDeclaration` in `src/extern/replace-method/index.js`  
-Test: `3--webpack-SameNameVar-visitVariableDeclaration.js`  and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
-```
 
 # Contributing
 - After cloning down the project, run `npm install` - that should be it.

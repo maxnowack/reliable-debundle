@@ -2,6 +2,10 @@ const replace = require('./extern/replace-method');
 const path = require('path');
 const getModuleLocation = require('./utils/getModuleLocation');
 
+var inlineOrVariable = require('./utils/inlineOrVariable');
+var should_replace=inlineOrVariable.should_replace;
+var should_add_var=inlineOrVariable.should_add_var;
+
 // only for debugging in WebStrom watch
 var recast = require('recast');
 var parse = recast.parse;
@@ -62,7 +66,7 @@ function transformRequires(
       // mangled variable.
       let moduleIdentifier = mod.code.params[type === 'webpack' ? 0 : 1];
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
-        if (config.replaceModules === 'inline') {
+        if (should_replace(config.replaceModules)) {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
           replace(mod.code, config)(
               moduleIdentifier.name, // the function that require is in within the code.
@@ -71,16 +75,16 @@ function transformRequires(
                 return node;
               }
           );
-        } else {
-
-          add_variable(config, 'replaceModules', moduleIdentifier, mod, 'module')
         }
+
+        add_variable(config, 'replaceModules', moduleIdentifier, mod, 'module')
+
       }
 
       // Dito to the above for `exports`
       let exportsIdentifier = mod.code.params[type === 'webpack' ? 1 : 2];
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
-        if (config.replaceExports === 'inline') {
+        if (should_replace(config.replaceExports)) {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
           replace(mod.code, config)(
               exportsIdentifier.name, // the function that require is in within the code.
@@ -89,9 +93,10 @@ function transformRequires(
                 return node;
               }
           );
-        } else {
-          add_variable(config, 'replaceExports', exportsIdentifier, mod, 'exports')
         }
+
+        add_variable(config, 'replaceExports', exportsIdentifier, mod, 'exports')
+
       }
     } else {
       console.log(`* Module ${mod.id} has no require param, skipping...`);
@@ -112,7 +117,7 @@ function transformRequires(
  */
 function add_variable(config, configItem, identifier, mod, name) {
   if (
-      config[configItem] === 'variable' &&
+      should_add_var(config[configItem]) &&
       identifier.name !== name &&
       mod.code && mod.code.body && mod.code.body.body
   ) {
@@ -144,7 +149,7 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
                 type: 'CallExpression',
                 // If replacing all require calls in the ast with the identifier `require`, use
                 // that identifier (`require`). Otherwise, keep it the same.
-                callee: replaceRequires === 'inline' ? {
+                callee: should_replace(replaceRequires) ? {
                   type: 'Identifier',
                   name: 'require',
                 } : requireFunctionIdentifier,
@@ -192,7 +197,7 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
                 type: 'CallExpression',
                 // If replacing all require calls in the ast with the identifier `require`, use
                 // that identifier (`require`). Otherwise, keep it the same.
-                callee: replaceRequires === 'inline' ? {
+                callee: should_replace(replaceRequires) ? {
                   type: 'Identifier',
                   name: 'require',
                 } : requireFunctionIdentifier,
@@ -203,7 +208,7 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
                 ],
               };
             } else if (node.arguments[0].type === 'Identifier') {
-              if (replaceRequires === 'inline') {
+              if (should_replace(replaceRequires)) {
                 // If replacing the require symbol inline, then replace with the identifier `require`
                 return {
                   type: 'CallExpression',
@@ -220,7 +225,7 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
             }
 
           case 'Identifier':
-            return replaceRequires === 'inline' ? {
+            return should_replace(replaceRequires) ? {
               type: 'Identifier',
               name: 'require',
             } : requireFunctionIdentifier;
@@ -229,6 +234,7 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
       }
   );
 }
+
 
 function build_VariableAssignment(variableIdentifier, contentIdentifier) {
   return {
@@ -245,14 +251,14 @@ function build_VariableAssignment(variableIdentifier, contentIdentifier) {
 }
 
 function update_RequireVar(replaceRequires, requireFunctionIdentifier) {
-  return replaceRequires === 'inline' ? {
+  return should_replace(replaceRequires) ? {
     type: 'Identifier',
     name: 'require',
   } : requireFunctionIdentifier
 }
 
 function update_MemberExpression(node, replaceRequires, requireFunctionIdentifier) {
-  if (replaceRequires === 'inline') {
+  if (should_replace(replaceRequires)) {
     node = {
       "type": "CallExpression",
       "callee": {
@@ -268,7 +274,7 @@ function update_MemberExpression(node, replaceRequires, requireFunctionIdentifie
 }
 
 function update_Argument(node, replaceRequires, requireFunctionIdentifier) {
-  if (replaceRequires === 'inline') {
+  if (should_replace(replaceRequires)) {
     var arguments = node.arguments.map((a) => {
       if (a.name == requireFunctionIdentifier.name)
         return update_RequireVar(replaceRequires, requireFunctionIdentifier)
