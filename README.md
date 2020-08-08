@@ -35,8 +35,38 @@ file: `src/extern/replace-method/index.js`
 }
 ```
 
+### scil/debundle support replacing `n` as a function parameter
+
+```javascript
+
+  function (e, t, n) {  // deep: 0
+    "use strict";
+    /// n:263
+    var r;
+
+
+    void 0 === (o = "function" == typeof (r = function () { // deep: 1
+        }
+    ) ? r.call(t, n, t, e) : r) || (e.exports = o) // n is `require` as a parameter of a level 1 function
+
+    !function () {   // deep: 1
+
+      r = function () {  // deep:2
+        return d
+      }.call(t, n, t, e)  // n is `require`,  e is mudule  of parameters of a level 2 function
+
+      void 0 === r || (e.exports = r)  // e is mudule
+    }()
+  }
+```
+
+By default, scil/debundle only replace the parameter `n` with level 1 function. To replace `n` with level 2 function, set
+```
+  "keepArgumentsDeeperThan":2,
+```
+
 ### curbs on `"replaceRequires": "inline",` 
-In old debundle,`inline` will replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
+In old debundle,`inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
 
 #### "keepDeeperThan" provided for users
 

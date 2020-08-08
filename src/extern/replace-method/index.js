@@ -272,8 +272,7 @@ function replacer(ast, config) {
 
     function hasSameNameArgument(node) {
 
-      // only support level 1 function with samename arguments
-      if (functionsStack.stack.length == 1
+      if (functionsStack.stack.length <= config.keepArgumentsDeeperThan
           && node.arguments.some((a) => {
             if (a.name == methodPath[0]) {
               node.sameNameArgument = true;

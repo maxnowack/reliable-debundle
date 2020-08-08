@@ -55,6 +55,7 @@ config.replaceModules = typeof config.replaceModules === 'undefined' ? "inline" 
 config.replaceExports = typeof config.replaceExports === 'undefined' ? "inline" : config.replaceExports;
 
 config.keepDeeperThan = typeof config.keepDeeperThan === 'undefined' ? 999 : parseInt(config.keepDeeperThan);
+config.keepArgumentsDeeperThan = typeof config.keepArgumentsDeeperThan === 'undefined' ? 1 : parseInt(config.keepArgumentsDeeperThan);
 
 if( typeof config.inDescendantsOfSameNameDeclaraton === 'undefined')
   config.inDescendantsOfSameNameDeclaraton = 'replace'

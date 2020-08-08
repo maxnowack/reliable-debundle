@@ -1,0 +1,11 @@
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceRequires": "inline,variable",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+
+  "keepArgumentsDeeperThan":2,
+  "knownPaths": {}
+}
