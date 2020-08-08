@@ -1,4 +1,4 @@
-const args = require('minimist')(process.argv.slice(2));
+const args = require('minimist')(process.argv.slice(2),{string:['input','i']});
 const path = require('path');
 const fs = require('fs');
 const execSync = require('child_process').execSync;
@@ -42,7 +42,7 @@ function read_first_two_lines(file) {
     // split the contents by new line
     const lines = data.split(/\r?\n/);
 
-    return lines.slice(0,2);
+    return lines.slice(0, 2);
 
   } catch (err) {
     console.error(err);
@@ -87,7 +87,7 @@ function debundle_a_bundle(bundle_file_name, output_name) {
   }
 
   exec = /bundle_file_name=(.+)/.exec(first_two_lines[1])
-  if(exec){
+  if (exec) {
     var bundle_file_name2 = exec[1]
     bundle_file = get_bundle_file_by_name_or_part_name(bundle_file_name2)
     console.log(`[Debundle] use ${bundle_file} for ${bundle_file_name}`);
@@ -128,7 +128,8 @@ function test_all() {
   }
 }
 
-if (bundle_file_name)
+if (bundle_file_name) {
+  console.log(`[Debundle] input provide by user is ${bundle_file_name} `)
   test_a_bundle(String(bundle_file_name)); // String is used for id which is of type interger
-else
+} else
   test_all();
