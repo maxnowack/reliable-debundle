@@ -1,6 +1,11 @@
 ![Debundle](debundle_logo.png)
 
 # scil
+
+## similar projects
+- [Debundle, V2](https://github.com/1egoman/debundle/tree/v2)
+- [retidy](https://github.com/Xmader/retidy/issues/1)
+
 ## update
 
 1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
