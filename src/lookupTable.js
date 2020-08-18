@@ -1,4 +1,6 @@
-const getModuleLocation = require('./utils/getModuleLocation');
+
+const _getModuleLocation = require('./utils/getModuleLocation');
+const getModuleLocation = _getModuleLocation.getModuleLocation
 
 // A fucntion that takes an array of modules, in the form of [{id: 2, code: (ast), lookup: {'./foo':
 // 3}}] and resolves them into filepaths using an embedded lookup table. If a lookup table is

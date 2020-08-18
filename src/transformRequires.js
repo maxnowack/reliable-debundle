@@ -1,6 +1,7 @@
 const replace = require('./extern/replace-method');
 const path = require('path');
-const getModuleLocation = require('./utils/getModuleLocation');
+const _getModuleLocation = require('./utils/getModuleLocation');
+const getModuleLocation = _getModuleLocation.getModuleLocation
 
 var inlineOrVariable = require('./utils/inlineOrVariable');
 var should_replace=inlineOrVariable.should_replace;
@@ -177,12 +178,15 @@ function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireF
                 return node;
               }
 
+              // This module's path
+              let this_module_path = path.dirname(getModuleLocation(modules, mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId));
+              // The module to import relative to the current module
+              let that_module_path = getModuleLocation(modules, moduleToRequire, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId);
+
               // Get a relative path from the current module to the module to require in.
               let moduleLocation = path.relative(
-                  // This module's path
-                  path.dirname(getModuleLocation(modules, mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId)),
-                  // The module to import relative to the current module
-                  getModuleLocation(modules, moduleToRequire, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId)
+                  this_module_path,
+                  that_module_path
               );
 
               // If the module path references a node_module, then remove the node_modules prefix

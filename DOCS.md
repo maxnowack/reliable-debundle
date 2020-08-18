@@ -25,6 +25,8 @@ An object mapping module ids to the location on disk to put a given module. For 
   - Otherwise, the path is treated as a node module, with the first path directory indicating the
     package name inside of `node_modules` and the rest of the path indicating where inside that
     module to put the file.
+    
+  - if `"fileExt":".js"`, `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
 
 ### `moduleAst`
 Instructions to get a reference to the module ast. Only required in weird bundles where the location

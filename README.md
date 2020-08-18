@@ -23,6 +23,8 @@ file: `src/extern/replace-method/index.js`
 
 5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
 
+6. v0.5.3.5 support `"fileExt":".js"`. `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
+
 ## preferable configuration for webpack
 
 The simplest way is use `"replaceRequires": "variable",` but in the produced js files,   
@@ -188,12 +190,6 @@ print(ast_node)
 
 This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
 
-[![Build Status](https://travis-ci.org/1egoman/debundle.svg?branch=master)](https://travis-ci.org/1egoman/debundler)
-
----
-
-## :dragon: HERE BE DRAGONS! :dragon:
-This was a research project that is **no longer maintained**. I built to help me understand how javascript bundles are strutured. It works in a labratory environment most of the time, but often fails on real-world javascript bundles. It's been a while since I worked on this project so if you run into issues, I might not really be able to help you out all that much.
 
 ---
 

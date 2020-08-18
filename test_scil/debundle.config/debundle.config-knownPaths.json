@@ -1,0 +1,16 @@
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceRequires": "inline",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+  "knownPaths": {
+    "0": "tool",
+    "1": "tool/str.js",
+    "2": "tool/str2.js",
+    "3": "tool/str/deep.js",
+    "4": "tool/str/deep2.js"
+  },
+  "fileExt":".js"
+}

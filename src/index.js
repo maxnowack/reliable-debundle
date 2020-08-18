@@ -6,6 +6,9 @@ const inquirer = require('inquirer');
 const args = require('minimist')(process.argv.slice(2));
 const convertToIntegerKey = require('./utils/convertToIntegerKey');
 
+const _getModuleLocation = require('./utils/getModuleLocation');
+const setFileExt = _getModuleLocation.setFileExt
+
 // ----------------------------------------------------------------------------
 // Set up configuration
 // ----------------------------------------------------------------------------
@@ -48,6 +51,12 @@ if (!config.moduleAst) {
         config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];
   }
   console.log(`* Using default AST location for ${config.type}...`);
+}
+
+
+config.fileExt = typeof config.fileExt === 'undefined' ? null: config.fileExt;
+if(config.fileExt){
+setFileExt(config.fileExt)
 }
 
 config.replaceRequires = typeof config.replaceRequires === 'undefined' ? "inline" : config.replaceRequires;
