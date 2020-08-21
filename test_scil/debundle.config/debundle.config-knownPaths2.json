@@ -1,0 +1,13 @@
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceRequires": "inline",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+  "knownPaths": {
+    "1": "tool/str.js",
+    "2": "./s2.js"
+  },
+  "fileExt":".js"
+}
