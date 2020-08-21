@@ -13,13 +13,13 @@ function setFileExt(ext) {
  * @param filePath
  * @returns {string}
  */
-function rightTrimFilePathForJsExt(appendTrailingIndexFilesToNodeModules, filePath) {
+function rightTrimFilePathForJsExt(rootNodeModule,appendTrailingIndexFilesToNodeModules, filePath) {
 
   if (fileExt) {
     let indexSuffix = `${path.sep}index`
     let sepSuffix = `${path.sep}`
 
-    let whichSuffix = appendTrailingIndexFilesToNodeModules ? indexSuffix : sepSuffix
+    let whichSuffix = !rootNodeModule?'': appendTrailingIndexFilesToNodeModules ? indexSuffix : sepSuffix
 
     if (filePath.endsWith(`${fileExt}${whichSuffix}`)) {
       filePath = filePath.substr(0, filePath.length - whichSuffix.length - fileExt.length)
@@ -129,7 +129,7 @@ function getModuleLocation(
     // ${moduleHierarchy.map(([mod, stack]) => `- ${mod} (${stack.slice(-1)[0]})`).join('\n')}`;
     throw new Error(err);
   }
-  filePath = rightTrimFilePathForJsExt(appendTrailingIndexFilesToNodeModules, filePath);
+  filePath = rightTrimFilePathForJsExt(rootNodeModule,appendTrailingIndexFilesToNodeModules, filePath);
   console.log(`* ${mod.id} => ${filePath}`);
 
   return filePath;
