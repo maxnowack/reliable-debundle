@@ -69,7 +69,7 @@ Always use `variable` for `replaceModules` and `replaceExports`. Because `inline
 `e` and `t` would not be replaced.
 
 
-## Update
+## Updates by scil
 
 1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
   1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
@@ -82,7 +82,7 @@ file: `src/extern/replace-method/index.js`
 
 3. v0.5.3.2 able to parse `n.d` to `require.d`
 
-4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
+4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#5-inherent-limitation-by-scildebundle-samenamevar)  
 
 5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
 
@@ -238,11 +238,10 @@ print(ast_node)
 - [Debundle, V2](https://github.com/1egoman/debundle/tree/v2)
 - [retidy](https://github.com/Xmader/retidy/issues/1)
 
-
-# old debundle doc
-
-
 ---
+
+# Old debundle doc
+
 
 ## Why would I want to debundle my code?
 Reasons vary, but this tool was originally developed to help me with a reverse engineering project.
@@ -250,9 +249,9 @@ Needless to say, sifting through minified bundles to try and figure out how a se
 fun and is a lot easier when that bundle is broken into files and those files have semantic names. 
 
 
-# Configuration
+## Configuration
 
-## Simple configuration
+### Simple configuration
 ```
 {
   "type": "browserify",
@@ -265,7 +264,7 @@ fun and is a lot easier when that bundle is broken into files and those files ha
 
 A configuration can have a number of flags - they are documented in [DOCS.md](DOCS.md).
 
-# FAQ
+## FAQ
 
 ### Is debundling lossless? Ie, if I bundle my code then debundle, will I get the same source that was originally bundled? 
 
