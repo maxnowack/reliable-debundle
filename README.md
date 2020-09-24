@@ -4,6 +4,11 @@ This is a tool built to unpack javascript bundles prudiced by webpack and browse
 
 # scil
 
+## Installation
+```
+npm i -g @scil/reliable-debundle
+```
+
 ## preferable configuration for webpack
 
 The simplest way is use `"replaceRequires": "variable",` but in the produced js files,   
@@ -49,8 +54,9 @@ file: `src/extern/replace-method/index.js`
 
 6. v0.5.3.5 support `"fileExt":".js"`. `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
 
+## why reliable?
 
-### scil/debundle support replacing `n` as a function parameter
+### scil/reliable-debundle support replacing `n` when n is used as a function parameter
 
 ```javascript
 
@@ -68,7 +74,7 @@ file: `src/extern/replace-method/index.js`
 
       r = function () {  // deep:2
         return d
-      }.call(t, n, t, e)  // n is `require`,  e is mudule  of parameters of a level 2 function
+      }.call(t, n, t, e)  // n is `require`,  e is module  of parameters of a level 2 function
 
       void 0 === r || (e.exports = r)  // e is mudule
     }()
@@ -81,7 +87,8 @@ By default, scil/debundle only replace the parameter `n` with level 1 function. 
 ```
 
 ### curbs on `"replaceRequires": "inline",` 
-In old debundle,`inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
+
+In old 1egoman/debundle, `inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
 
 #### "keepDeeperThan" provided for users
 
@@ -119,6 +126,8 @@ function (e, t, n) {  // deep: 0
 #### inherent limitation by scil/debundle: SameNameVar
 
 And an extra config "inDescendantsOfSameNameDeclaraton"
+
+When `n` is `require`, there may be another varable which is also named `n` but is not `requrie`. This is **SameNameVar**.
 
 ```
   function (e, t, n) {  // ★★★ this n  is  `require`
@@ -201,10 +210,6 @@ Reasons vary, but this tool was originally developed to help me with a reverse e
 Needless to say, sifting through minified bundles to try and figure out how a service works isn't
 fun and is a lot easier when that bundle is broken into files and those files have semantic names. 
 
-## Installation
-```
-npm i -g debundle
-```
 
 ## Running
 ```bash
