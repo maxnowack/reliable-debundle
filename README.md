@@ -93,7 +93,25 @@ file: `src/extern/replace-method/index.js`
 
 ### 1. support `"replaceRequires": "inline,variable",`
 
-not only `inline` or `variable`, but also both `inline` and `variable`.
+```javascript
+
+function (e, t, n) {  // n is require.
+  n(3);  // n is require
+  function x(){
+    var n =3;   // this n is not require
+  }
+}
+```
+In old 1egoman/debundle, `"replaceRequires": "inline"` would replace all `n` with `require` in a module function `function (e, t ,n)`.  How to limit it?
+
+Reliable-debundle not only support `inline` or `variable`, but also both `inline` and `variable` which could produce following code:
+```
+  var require = n;
+  require('./3');
+  function x(){
+    var n =3;   // this n is not require
+  }
+```
 
 ### 2. scil/reliable-debundle support replacing `n` when n is used as a function parameter
 
@@ -127,7 +145,7 @@ By default, scil/debundle only replace the parameter `n` with level 1 function. 
 
 ### 3. curbs on `"replaceRequires": "inline",` 
 
-In old 1egoman/debundle, `inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
+In old 1egoman/debundle, `inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`.  How to limit it?
 
 #### 3.1. "keepDeeperThan" provided for users
 
