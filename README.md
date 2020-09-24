@@ -9,6 +9,40 @@ This is a tool built to unpack javascript bundles prudiced by webpack and browse
 npm i -g @scil/reliable-debundle
 ```
 
+## Running
+```bash
+$ debundle
+Usage: debundle [input file] {OPTIONS}
+
+Options:
+   --input,  -i  Bundle to debundle
+   --output, -o  Directory to debundle code into.
+   --config, -c  Configuration file
+
+$ curl https://raw.githubusercontent.com/1egoman/debundle/master/test_bundles/browserify/bundle.js > bundle.js
+$ curl https://raw.githubusercontent.com/1egoman/debundle/master/test_bundles/browserify/debundle.config.json > debundle.config.json
+$ cat debundle.config.json
+{
+  "type": "browserify",
+  "knownPaths": {}
+}
+$ debundle -i bundle.js -o dist/ -c debundle.config.json
+$ tree dist/
+dist/
+├── index.js
+└── node_modules
+    ├── number
+    │   └── index.js
+    └── uuid
+        ├── index.js
+        ├── lib
+        │   ├── bytesToUuid.js
+        │   └── rng.js
+        ├── v1.js
+        └── v4.js
+4 directories, 7 files
+```
+
 ## Preferable configuration for webpack
 
 The simplest way is use `"replaceRequires": "variable",`   
@@ -35,7 +69,7 @@ Always use `variable` for `replaceModules` and `replaceExports`. Because `inline
 `e` and `t` would not be replaced.
 
 
-## update
+## Update
 
 1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
   1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
@@ -55,11 +89,13 @@ file: `src/extern/replace-method/index.js`
 6. v0.5.3.5 support `"fileExt":".js"`.   
 `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
 
-## why reliable?
+## Efforts to be reliable?
 
-### support `"replaceRequires": "inline,variable",`
+### 1. support `"replaceRequires": "inline,variable",`
 
-### scil/reliable-debundle support replacing `n` when n is used as a function parameter
+not only `inline` or `variable`, but also both `inline` and `variable`.
+
+### 2. scil/reliable-debundle support replacing `n` when n is used as a function parameter
 
 ```javascript
 
@@ -89,11 +125,11 @@ By default, scil/debundle only replace the parameter `n` with level 1 function. 
   "keepArgumentsDeeperThan":2,
 ```
 
-### curbs on `"replaceRequires": "inline",` 
+### 3. curbs on `"replaceRequires": "inline",` 
 
 In old 1egoman/debundle, `inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
 
-#### "keepDeeperThan" provided for users
+#### 4. "keepDeeperThan" provided for users
 
 `"keepDeeperThan": 2,` would make debundle ignore everything in functions with level 3 or deeper.
 
@@ -126,7 +162,7 @@ function (e, t, n) {  // deep: 0
   }
 ```
 
-#### inherent limitation by scil/debundle: SameNameVar
+#### 5. inherent limitation by scil/debundle: SameNameVar
 
 And an extra config "inDescendantsOfSameNameDeclaraton"
 
@@ -181,7 +217,7 @@ Related Test:
 `3--webpack-SameNameVar-visitVariableDeclaration.js`   
 and  `4--webpack-SameNameVar-visitFunction.js`  in `test_scil/bundle`
 
-## tools
+## Tools
 
 ### online tool to try parser
 - https://astexplorer.net/ support multiple parsers
@@ -198,7 +234,7 @@ var print = recast.print;
 print(ast_node)
 ```
 
-## similar projects
+## Similar projects
 - [Debundle, V2](https://github.com/1egoman/debundle/tree/v2)
 - [retidy](https://github.com/Xmader/retidy/issues/1)
 
@@ -213,40 +249,6 @@ Reasons vary, but this tool was originally developed to help me with a reverse e
 Needless to say, sifting through minified bundles to try and figure out how a service works isn't
 fun and is a lot easier when that bundle is broken into files and those files have semantic names. 
 
-
-## Running
-```bash
-$ debundle
-Usage: debundle [input file] {OPTIONS}
-
-Options:
-   --input,  -i  Bundle to debundle
-   --output, -o  Directory to debundle code into.
-   --config, -c  Configuration file
-
-$ curl https://raw.githubusercontent.com/1egoman/debundle/master/test_bundles/browserify/bundle.js > bundle.js
-$ curl https://raw.githubusercontent.com/1egoman/debundle/master/test_bundles/browserify/debundle.config.json > debundle.config.json
-$ cat debundle.config.json
-{
-  "type": "browserify",
-  "knownPaths": {}
-}
-$ debundle -i bundle.js -o dist/ -c debundle.config.json
-$ tree dist/
-dist/
-├── index.js
-└── node_modules
-    ├── number
-    │   └── index.js
-    └── uuid
-        ├── index.js
-        ├── lib
-        │   ├── bytesToUuid.js
-        │   └── rng.js
-        ├── v1.js
-        └── v4.js
-4 directories, 7 files
-```
 
 # Configuration
 
