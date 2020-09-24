@@ -2,18 +2,18 @@
 
 This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
 
-# scil
+# scil/reliable-debunble
 
 ## Installation
 ```
 npm i -g @scil/reliable-debundle
 ```
 
-## preferable configuration for webpack
+## Preferable configuration for webpack
 
-The simplest way is use `"replaceRequires": "variable",` but in the produced js files,   
-`n(1)` would not support code jumping in Intellij Idea family products currently.
-To use code jumping, improve Idea, or use `"replaceRequires": "inline,variable",`
+The simplest way is use `"replaceRequires": "variable",`   
+but in the produced js files,  `n(1)` would not support code jumping in Intellij Idea family products currently.  
+To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires": "inline,variable",`
 
 ```json
 {
@@ -52,9 +52,12 @@ file: `src/extern/replace-method/index.js`
 
 5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
 
-6. v0.5.3.5 support `"fileExt":".js"`. `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
+6. v0.5.3.5 support `"fileExt":".js"`.   
+`"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
 
 ## why reliable?
+
+### support `"replaceRequires": "inline,variable",`
 
 ### scil/reliable-debundle support replacing `n` when n is used as a function parameter
 
