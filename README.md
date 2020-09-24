@@ -106,7 +106,7 @@ In old 1egoman/debundle, `"replaceRequires": "inline"` would replace all `n` wit
 
 Reliable-debundle not only support `inline` or `variable`, but also both `inline` and `variable` which could produce following code:
 ```
-  var require = n;
+  const n = require;
   require('./3');
   function x(){
     var n =3;   // this n is not require
