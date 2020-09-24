@@ -1,5 +1,5 @@
 {
-  "name": "debundle",
+  "name": "reliable-debundle",
   "version": "0.5.3",
   "description": "",
   "main": "src/index.js",
@@ -21,7 +21,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scl/debundle.git"
+    "url": "git+https://github.com/scil/reliable-debundle.git"
   },
   "dependencies": {
     "acorn": "^7.3.1",

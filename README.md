@@ -1,29 +1,8 @@
 ![Debundle](debundle_logo.png)
 
+This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
+
 # scil
-
-## similar projects
-- [Debundle, V2](https://github.com/1egoman/debundle/tree/v2)
-- [retidy](https://github.com/Xmader/retidy/issues/1)
-
-## update
-
-1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
-  1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
-instead of `["body", 0, "expression", "arguments", 0];`.   
-file: `src/index.js`
-  2. use `recast.types.visit` instead of `recast.types.traverse`.   
-file: `src/extern/replace-method/index.js`
-
-2. v0.5.3.1 support windows os dir style using `path.normalize`.
-
-3. v0.5.3.2 able to parse `n.d` to `require.d`
-
-4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
-
-5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
-
-6. v0.5.3.5 support `"fileExt":".js"`. `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
 
 ## preferable configuration for webpack
 
@@ -49,6 +28,27 @@ To use code jumping, improve Idea, or use `"replaceRequires": "inline,variable",
 
 Always use `variable` for `replaceModules` and `replaceExports`. Because `inline` for both is not supported fully, most times
 `e` and `t` would not be replaced.
+
+
+## update
+
+1. 2020.07.16 merge from [hectorqin/debundle](https://github.com/hectorqin/debundle) 
+  1. use `config.moduleAst = ["body", 0, "expression", "argument", "arguments", 0];` for webpack,   
+instead of `["body", 0, "expression", "arguments", 0];`.   
+file: `src/index.js`
+  2. use `recast.types.visit` instead of `recast.types.traverse`.   
+file: `src/extern/replace-method/index.js`
+
+2. v0.5.3.1 support windows os dir style using `path.normalize`.
+
+3. v0.5.3.2 able to parse `n.d` to `require.d`
+
+4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#SameNameVar)  
+
+5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
+
+6. v0.5.3.5 support `"fileExt":".js"`. `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
+
 
 ### scil/debundle support replacing `n` as a function parameter
 
@@ -186,9 +186,12 @@ var print = recast.print;
 print(ast_node)
 ```
 
-# debundle
+## similar projects
+- [Debundle, V2](https://github.com/1egoman/debundle/tree/v2)
+- [retidy](https://github.com/Xmader/retidy/issues/1)
 
-This is a tool built to unpack javascript bundles prudiced by webpack and browserify.
+
+# old debundle doc
 
 
 ---
