@@ -82,7 +82,7 @@ file: `src/extern/replace-method/index.js`
 
 3. v0.5.3.2 able to parse `n.d` to `require.d`
 
-4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#5-inherent-limitation-by-scildebundle-samenamevar)  
+4. v0.5.3.3 support `"replaceRequires": "inline",`  in the situation [SameNameVar](#3.2-inherent-limitation-by-scildebundle-samenamevar)  
 
 5. v0.5.3.4 support `"replaceRequires": "inline,variable",` and config `keepArgumentsDeeperThan`
 
@@ -129,7 +129,7 @@ By default, scil/debundle only replace the parameter `n` with level 1 function. 
 
 In old 1egoman/debundle, `inline` tends to replace all `n` with `require` in a module function `function (e, t ,n)`. How to limit it?
 
-#### 4. "keepDeeperThan" provided for users
+#### 3.1. "keepDeeperThan" provided for users
 
 `"keepDeeperThan": 2,` would make debundle ignore everything in functions with level 3 or deeper.
 
@@ -162,7 +162,7 @@ function (e, t, n) {  // deep: 0
   }
 ```
 
-#### 5. inherent limitation by scil/debundle: SameNameVar
+#### 3.2. inherent limitation by scil/debundle: SameNameVar
 
 And an extra config "inDescendantsOfSameNameDeclaraton"
 
