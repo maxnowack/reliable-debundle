@@ -59,6 +59,7 @@ function transformRequires(
 
         replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config)
 
+        //  to implement "replaceRequires": "variable",
         add_variable(config, 'replaceRequires', requireFunctionIdentifier, mod, 'require')
       }
 
@@ -70,7 +71,7 @@ function transformRequires(
         if (should_replace(config.replaceModules)) {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
           replace(mod.code, config)(
-              moduleIdentifier.name, // the function that require is in within the code.
+              moduleIdentifier.name,
               node => {
                 node.name = 'module';
                 return node;
@@ -78,17 +79,18 @@ function transformRequires(
           );
         }
 
+        //  to implement "replaceModules": "variable",
         add_variable(config, 'replaceModules', moduleIdentifier, mod, 'module')
 
       }
 
-      // Dito to the above for `exports`
+      // for `exports`
       let exportsIdentifier = mod.code.params[type === 'webpack' ? 1 : 2];
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
         if (should_replace(config.replaceExports)) {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
           replace(mod.code, config)(
-              exportsIdentifier.name, // the function that require is in within the code.
+              exportsIdentifier.name,
               node => {
                 node.name = 'exports';
                 return node;
@@ -96,6 +98,7 @@ function transformRequires(
           );
         }
 
+        //  to implement "replaceExports": "variable",
         add_variable(config, 'replaceExports', exportsIdentifier, mod, 'exports')
 
       }
@@ -135,7 +138,7 @@ function add_variable(config, configItem, identifier, mod, name) {
 function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config) {
 
   replace(mod.code, config)(
-      requireFunctionIdentifier.name, // the function that require is in within the code.
+      requireFunctionIdentifier.name,
       node => {
 
         // only for debugging in WebStrom watch

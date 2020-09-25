@@ -197,7 +197,7 @@ function replacer(ast, config) {
 
       , visitCallExpression(path) {
         // console.log(path)
-        const result = size === 1 ? single(path.node) : nested(path.node)
+        const result = size === 1 ? single(path.node,replaceRequires,methodPath,updater,config,functionsStack) : nested(path.node,size)
 
         if (result == 'false') {
           // return false to
@@ -219,91 +219,8 @@ function replacer(ast, config) {
     // why this line? debug?
     // return replace
 
-    function single(node) {
-
-      var target = null;
-      var fun = null;
-
-      switch (node.type) {
-        case 'CallExpression':
-
-          if (should_replace(replaceRequires)) {
-
-            if (functionsStack.sameNameVarOrParamIsWorking()) return 'false';
-
-            if (fun = functionsStack.getFuncDeclarationWithSameName()) {
-              var inDescendantsOfSameNameDeclaraton =
-                  config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun, methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
-
-              if (inDescendantsOfSameNameDeclaraton == 'keep') {
-                return 'false';
-              }
-            }
-
-            // MemberExpression:
-            //   n.d(x)
-            // or
-            //   {}.call(n) // how to handle it ? see: hasSameNameVarOrParam
-            target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
-
-          } else if (replaceRequires == 'variable') {
-            target = node.callee;
-          } else {
-            throw new Error("replaceRequires should be 'inline' or 'variable'")
-          }
-          break;
-
-        case 'Identifier':
-          if (methodPath[0] !== node.name) return;
-          break;
-
-        default:
-          return;
-      }
 
 
-      if (target && target.name !== methodPath[0] && !(hasSameNameArgument(node))) {
-        return
-      }
-
-
-      return updater(node)
-    }
-
-    function hasSameNameArgument(node) {
-
-      if (functionsStack.stack.length <= config.keepArgumentsDeeperThan
-          && node.arguments.some((a) => {
-            if (a.name == methodPath[0]) {
-              node.sameNameArgument = true;
-              return true;
-            }
-          })) {
-        return true;
-      }
-    }
-
-    function nested(node) {
-      if (node.type !== 'CallExpression') return
-
-      var c = node.callee
-      var o = node.callee
-      var i = size - 1
-
-      if (c.type === 'Identifier') return
-      while (c && c.type === 'MemberExpression') {
-        o = c
-        if (c.computed) return
-        if (methodPath[i] !== c.property.name) return
-        c = c.object
-        i = i - 1
-      }
-
-      if (!o.object || !o.object.name) return
-      if (o.object.name !== methodPath[0]) return
-
-      return updater(node)
-    }
   }
 }
 
@@ -317,5 +234,90 @@ function ask(code, fun, method) {
   console.log(func_code.length > 200 ? func_code.substring(0, 200) + ' ...' : func_code)
   var ans = prompt(`How to handle this ${method}? replace|[keep]`, 'keep');
   return ans;
+}
+
+function single(node,replaceRequires,methodPath,updater,config,functionsStack) {
+
+  var target = null;
+  var fun = null;
+
+  switch (node.type) {
+    case 'CallExpression':
+
+      if (should_replace(replaceRequires)) {
+
+        if (functionsStack.sameNameVarOrParamIsWorking()) return 'false';
+
+        if (fun = functionsStack.getFuncDeclarationWithSameName()) {
+          var inDescendantsOfSameNameDeclaraton =
+              config.inDescendantsOfSameNameDeclaraton == 'ask' ? ask(node, fun, methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
+
+          if (inDescendantsOfSameNameDeclaraton == 'keep') {
+            return 'false';
+          }
+        }
+
+        // MemberExpression:
+        //   n.d(x)
+        // or
+        //   {}.call(n) // how to handle it ? see: hasSameNameVarOrParam
+        target = node.callee.type == 'MemberExpression' ? node.callee.object : node.callee
+
+      } else if (replaceRequires == 'variable') {
+        target = node.callee;
+      } else {
+        throw new Error("replaceRequires should be 'inline' or 'variable'")
+      }
+      break;
+
+    case 'Identifier':
+      if (methodPath[0] !== node.name) return;
+      break;
+
+    default:
+      return;
+  }
+
+  function hasSameNameArgument(node) {
+
+    if (functionsStack.stack.length <= config.keepArgumentsDeeperThan
+        && node.arguments.some((a) => {
+          if (a.name == methodPath[0]) {
+            node.sameNameArgument = true;
+            return true;
+          }
+        })) {
+      return true;
+    }
+  }
+
+  if (target && target.name !== methodPath[0] && !(hasSameNameArgument(node))) {
+    return
+  }
+
+
+  return updater(node)
+}
+
+function nested(node,size) {
+  if (node.type !== 'CallExpression') return
+
+  var c = node.callee
+  var o = node.callee
+  var i = size - 1
+
+  if (c.type === 'Identifier') return
+  while (c && c.type === 'MemberExpression') {
+    o = c
+    if (c.computed) return
+    if (methodPath[i] !== c.property.name) return
+    c = c.object
+    i = i - 1
+  }
+
+  if (!o.object || !o.object.name) return
+  if (o.object.name !== methodPath[0]) return
+
+  return updater(node)
 }
 
