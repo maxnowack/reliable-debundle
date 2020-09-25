@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const args = require('minimist')(process.argv.slice(2),{string:['input','i']});
 const path = require('path');
 const fs = require('fs');
@@ -21,6 +23,10 @@ if (showHelp) {
   console.log(`This is a debundler - it takes a bundle and expands it into the source that was used to compile it.`);
   console.log();
   console.log(`Usage: ${process.argv[1]} [input file] {OPTIONS}`);
+  console.log();
+  console.log(`Example: `);
+  console.log(`  ${process.argv[1]}       # test all bundle files in ${bundle_dir}`);
+  console.log(`  ${process.argv[1]} -i "8.1-"     # only test the bundle file whose name starts with "8.1-"`);
   console.log();
   console.log(`Options:`);
   console.log(`   --input, -i  Optional. Full name or prefix part name of bundle file. It must exist in ${bundle_dir}.`);
