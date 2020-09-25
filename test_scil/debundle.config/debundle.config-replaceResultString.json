@@ -1,0 +1,14 @@
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceRequires": "inline",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+  "replaceResultString":{
+    "from": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
+    "to": "exports.$1 = $2",
+    "all": 1
+    },
+  "knownPaths": {}
+}

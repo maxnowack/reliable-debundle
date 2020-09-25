@@ -61,6 +61,13 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
   "replaceRequires": "inline,variable",
   "replaceModules": "variable",
   "replaceExports": "variable",
+
+  "replaceResultString":{
+    "from": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
+    "to": "exports.$1 = $2",
+    "all": 1
+    },
+
   "knownPaths": {}
 }
 ```
@@ -68,6 +75,18 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
 Always use `variable` for `replaceModules` and `replaceExports`. Because `inline` for both is not supported fully, most times
 `e` and `t` would not be replaced.
 
+`replaceResultString` used to replace the contents string before `writeToDisk`. It can change 
+``` 
+require.d(t, 'c', function () {
+  return 1;
+}), require.d(t, 'd', function () {
+  return 2;
+});
+```
+to
+``` 
+exports.c = 1, exports.d = 2;
+```
 
 ## Updates by scil
 
@@ -88,6 +107,8 @@ file: `src/extern/replace-method/index.js`
 
 6. v0.5.3.5 support `"fileExt":".js"`.   
 `"1": "tool/str.js"` would save `n(1)` as `tool/str.js`, not `tool/str.js/index.js`
+
+7. v0.5.3.6 support `"replaceResultString"`.   
 
 ## Efforts to be reliable?
 
