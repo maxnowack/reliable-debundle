@@ -29,9 +29,6 @@ function transformRequires(
     config
 ) {
 
-    var knownPaths = config.knownPaths, entryPointModuleId = config.entryPoint, type = config.type,
-        replaceRequires = config.replaceRequires;
-
     return modules.map(mod => {
         let moduleDescriptor = mod.code.body;
 
@@ -43,7 +40,7 @@ function transformRequires(
 
         if (mod.code && mod.code.params && mod.code.params.length > 0) {
             // Determine the name of the require function. In unminified bundles it's `__webpack_require__`.
-            let requireFunctionIdentifier = mod.code.params[type === 'webpack' ? 2 : 0];
+            let requireFunctionIdentifier = mod.code.params[config.type === 'webpack' ? 2 : 0];
 
             var find_target_and_implement_updater = replace(mod.code, config)
 
@@ -64,7 +61,7 @@ function transformRequires(
             // Also, make sure that the `module` that was injected into the closure sorrounding the module
             // wasn't mangled, and if it was, then update the closure contents to use `module` not the
             // mangled variable.
-            let moduleIdentifier = mod.code.params[type === 'webpack' ? 0 : 1];
+            let moduleIdentifier = mod.code.params[config.type === 'webpack' ? 0 : 1];
 
 
             if (moduleIdentifier && moduleIdentifier.name !== 'module') {
@@ -86,7 +83,7 @@ function transformRequires(
             }
 
             // for `exports`
-            let exportsIdentifier = mod.code.params[type === 'webpack' ? 1 : 2];
+            let exportsIdentifier = mod.code.params[config.type === 'webpack' ? 1 : 2];
             if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
                 if (should_replace(config.replaceExports)) {
                     console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
