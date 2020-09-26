@@ -70,7 +70,9 @@ function transformRequires(
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
         if (should_replace(config.replaceModules)) {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
-          replace(mod.code, config)(
+          var find_target_and_implement_updater=replace(mod.code, config)
+
+          find_target_and_implement_updater(
               moduleIdentifier.name,
               node => {
                 node.name = 'module';
@@ -89,7 +91,10 @@ function transformRequires(
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
         if (should_replace(config.replaceExports)) {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
-          replace(mod.code, config)(
+
+          var find_target_and_implement_updater=replace(mod.code, config)
+
+          find_target_and_implement_updater(
               exportsIdentifier.name,
               node => {
                 node.name = 'exports';
@@ -137,7 +142,9 @@ function add_variable(config, configItem, identifier, mod, name) {
 
 function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config) {
 
-  replace(mod.code, config)(
+  var find_target_and_implement_updater=replace(mod.code, config)
+
+  find_target_and_implement_updater(
       requireFunctionIdentifier.name,
       node => {
 
