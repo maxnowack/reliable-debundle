@@ -48,6 +48,7 @@ function transformRequires(
       // Determine the name of the require function. In unminified bundles it's `__webpack_require__`.
       let requireFunctionIdentifier = mod.code.params[type === 'webpack' ? 2 : 0];
 
+      var find_target_and_implement_updater=replace(mod.code, config)
 
       // source = 'var s=3;';
       // console.log(print(parse(source)).code);
@@ -57,7 +58,7 @@ function transformRequires(
       // function to run since we're doning more than just changing the require functon name.
       if (requireFunctionIdentifier) {
 
-        replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config)
+        replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config, find_target_and_implement_updater)
 
         //  to implement "replaceRequires": "variable",
         add_variable(config, 'replaceRequires', requireFunctionIdentifier, mod, 'require')
@@ -68,12 +69,10 @@ function transformRequires(
       // mangled variable.
       let moduleIdentifier = mod.code.params[type === 'webpack' ? 0 : 1];
 
-      var find_target_and_implement_updater;
 
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
         if (should_replace(config.replaceModules)) {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
-          find_target_and_implement_updater=replace(mod.code, config)
 
           find_target_and_implement_updater(
               moduleIdentifier.name,
@@ -94,8 +93,6 @@ function transformRequires(
       if (exportsIdentifier && exportsIdentifier.name !== 'exports') {
         if (should_replace(config.replaceExports)) {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
-
-          find_target_and_implement_updater=replace(mod.code, config)
 
           find_target_and_implement_updater(
               exportsIdentifier.name,
@@ -143,9 +140,8 @@ function add_variable(config, configItem, identifier, mod, name) {
   }
 }
 
-function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config) {
+function replace_requires(mod, modules, knownPaths, entryPointModuleId, requireFunctionIdentifier, type, replaceRequires, config, find_target_and_implement_updater) {
 
-  var find_target_and_implement_updater=replace(mod.code, config)
 
   find_target_and_implement_updater(
       requireFunctionIdentifier.name,
