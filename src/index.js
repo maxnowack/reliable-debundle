@@ -161,8 +161,8 @@ if (config.type === 'browserify') {
 
 console.log('* Reassembling requires...');
 const transformRequires = require('./transformRequires');
-modules = transformRequires(modules, config.knownPaths, config.entryPoint, config.type,
-    config.replaceRequires, config);
+modules = transformRequires(modules,
+    config);
 
 // ------------------------------------------------------------------------------
 // Take the array of modules and figure out where to put each module on disk.
