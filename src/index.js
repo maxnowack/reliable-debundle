@@ -78,9 +78,18 @@ if (config.replaceResultString) {
         'from' in config.replaceResultString &&
         'to' in config.replaceResultString
     )
+
+    // 'all' is only for regexp
     if (!('all' in config.replaceResultString))
         config.replaceResultString.all = true
+
+    if (config.replaceResultString.regexp){
+        config.replaceResultString.from = new RegExp(config.replaceResultString.from, config.replaceResultString.all ? 'gm' : '')
+    }
 }
+
+// if(config.friendlyExportsFrom)
+//     config.friendlyExportsFrom = new RegExp(config.friendlyExportsFrom,'g')
 
 // ----------------------------------------------------------------------------
 // Read in bundle

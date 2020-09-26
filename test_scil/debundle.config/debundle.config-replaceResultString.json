@@ -7,7 +7,8 @@
   "replaceExports": "variable",
   "replaceResultString":{
     "from": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
-    "to": "exports.$1 = $2",
+    "to": "\n//exports.$1 = $2 \nrequire.d(t,'$1',function(){return $2;})",
+    "regexp":1,
     "all": 1
     },
   "knownPaths": {}

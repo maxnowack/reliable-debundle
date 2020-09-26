@@ -63,10 +63,12 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
   "replaceExports": "variable",
 
   "replaceResultString":{
-    "from": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
-    "to": "exports.$1 = $2",
+    "from": "e.exports = require('electron');",
+    "to": "//e.exports = require('electron');",
+    "regexp": 0,
     "all": 1
     },
+  "friendlyExportsFrom": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
 
   "knownPaths": {}
 }
@@ -75,7 +77,9 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
 Always use `variable` for `replaceModules` and `replaceExports`. Because `inline` for both is not supported fully, most times
 `e` and `t` would not be replaced.
 
-`replaceResultString` used to replace the contents string before `writeToDisk`. It can change 
+`replaceResultString` used to replace the contents string before `writeToDisk`. 
+
+`friendlyExportsFrom` can read 
 ``` 
 require.d(t, 'c', function () {
   return 1;
@@ -83,7 +87,7 @@ require.d(t, 'c', function () {
   return 2;
 });
 ```
-to
+and produce
 ``` 
 exports.c = 1, exports.d = 2;
 ```
