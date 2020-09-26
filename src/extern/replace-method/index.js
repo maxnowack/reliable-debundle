@@ -10,11 +10,11 @@ var inlineOrVariable = require('../../utils/inlineOrVariable');
 var should_replace = inlineOrVariable.should_replace;
 // var should_add_var=inlineOrVariable.should_add_var;
 
-module.exports = replacer
 
-function debug_code(node) {
-    return print(node).code
-}
+var get_node_code = require('../../utils/get_node_code');
+
+module.exports = replacer;
+
 
 class FunctionSameNameInfo {
     constructor(func, hasSameNameVarOrParam = false, funcDeclarationWithSameName = null) {
@@ -76,7 +76,7 @@ class FunctionSameNameStack {
     letSameNameWorkingIf(boolDeclarationWithSameName, methodPath, type, path) {
         if (boolDeclarationWithSameName) {
 
-            var code = debug_code(path)
+            var code = get_node_code(path)
             code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
 
             this.log(`A ${type} named ${methodPath[0]} declaraed: 
@@ -97,7 +97,7 @@ function replacer(ast, config) {
         ast = parse(ast)
 
     // print code, used for debug
-    find_target_and_implement_updater.code = debug_code
+    find_target_and_implement_updater.code = get_node_code
     // why this line?
     // replace.replace = replace
 
@@ -230,10 +230,12 @@ function ask(code, fun, method) {
 
     console.log("ask")
     console.log("found")
-    console.log(debug_code(func_code))
+
+    var func_code = get_node_code(fun)
+    console.log(get_node_code(func_code))
     console.log("in this function:")
-    var func_code = debug_code(fun)
     console.log(func_code.length > 200 ? func_code.substring(0, 200) + ' ...' : func_code)
+
     var ans = prompt(`How to handle this ${method}? replace|[keep]`, 'keep');
     return ans;
 }
