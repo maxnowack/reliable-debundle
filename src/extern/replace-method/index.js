@@ -72,6 +72,19 @@ class FunctionSameNameStack {
         this.stack[this.stack.length - 1].hasSameNameVarOrParam = true
     }
 
+
+    letSameNameWorkingIf(boolDeclarationWithSameName, methodPath, type, path) {
+        if (boolDeclarationWithSameName) {
+
+            var code = debug_code(path)
+            code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
+
+            this.log(`A ${type} named ${methodPath[0]} declaraed: 
+${code} `)
+            this.letSameNameWorking();
+        }
+    }
+
     log(msg) {
         console.log('[Travel][SameNameVar] ' + msg)
     }
@@ -100,6 +113,7 @@ function replacer(ast, config) {
 
         var functionsStack = new FunctionSameNameStack(methodPath, config.keepDeeperThan);
 
+
         visit(ast, {
 
             // This method will be called for any node whose type is a subtype of
@@ -112,15 +126,10 @@ function replacer(ast, config) {
 
                 if (functionsStack.willTooDeep()) return false;
 
+                // if the func is named same with methodPath[0]
                 // type FunctionDeclaration has the prop id
                 var boolDeclarationWithSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
 
-                function letSameNameWorking() {
-                    if (boolDeclarationWithSameName) {
-                        functionsStack.log(`A function named ${methodPath[0]} declaraed: ${debug_code(path)} `)
-                        functionsStack.letSameNameWorking();
-                    }
-                }
 
 
                 /**
@@ -132,15 +141,12 @@ function replacer(ast, config) {
                  * }
                  */
 
+                // if a param is named same with methodPath[0]
                 let boolParamHasSameName = functionsStack.is_empty() ? null : path.value.params.some(
                     (param) => param.name == methodPath[0])
 
                 if (boolParamHasSameName) {
-                    var code = debug_code(path.value)
-                    code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
-                    functionsStack.log(`A function has a param named ${methodPath[0]} declaraed: ${code} `)
-
-                    letSameNameWorking();
+                    functionsStack.letSameNameWorkingIf(boolParamHasSameName,methodPath,' function has a param',path.value);
 
                     // return false to
                     // indicate that the traversal need not continue any further down this subtree.
@@ -166,12 +172,12 @@ function replacer(ast, config) {
                  *
                  * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
                  */
-                letSameNameWorking();
+                functionsStack.letSameNameWorkingIf(boolDeclarationWithSameName,methodPath,'function', path);
 
             }
 
             , visitVariableDeclaration(path) {
-                if (config.replaceRequires == 'variable') return false;
+                if (config.replaceRequires === 'variable') return false;
                 /**
                  * function (e, t, n) {
                  *  var u = n(1);
@@ -181,12 +187,10 @@ function replacer(ast, config) {
                  * }
                  */
                 var boolVarHasSameName = path.value.declarations.some(
-                    (dec) => dec.id.type === 'Identifier' && dec.id.name == methodPath[0]
+                    (dec) => dec.id.type === 'Identifier' && dec.id.name === methodPath[0]
                 )
-                if (boolVarHasSameName) {
-                    functionsStack.log(`A var named ${methodPath[0]} declaraed: ${print(path).code} `)
-                    functionsStack.letSameNameWorking();
-                }
+
+                functionsStack.letSameNameWorkingIf(boolVarHasSameName,methodPath,'var', path);
 
                 this.traverse(path)
 
@@ -196,7 +200,7 @@ function replacer(ast, config) {
                 // console.log(path)
                 const result = size === 1 ? single(path.node, methodPath, updater, config, functionsStack) : nested(path.node, size)
 
-                if (result == 'false') {
+                if (result === 'false') {
                     // return false to
                     // indicate that the traversal need not continue any further down this subtree.
                     // https://github.com/benjamn/ast-types#ast-traversal
