@@ -67,10 +67,13 @@ function transformRequires(
       // wasn't mangled, and if it was, then update the closure contents to use `module` not the
       // mangled variable.
       let moduleIdentifier = mod.code.params[type === 'webpack' ? 0 : 1];
+
+      var find_target_and_implement_updater;
+
       if (moduleIdentifier && moduleIdentifier.name !== 'module') {
         if (should_replace(config.replaceModules)) {
           console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
-          var find_target_and_implement_updater=replace(mod.code, config)
+          find_target_and_implement_updater=replace(mod.code, config)
 
           find_target_and_implement_updater(
               moduleIdentifier.name,
@@ -92,7 +95,7 @@ function transformRequires(
         if (should_replace(config.replaceExports)) {
           console.log(`* Replacing ${exportsIdentifier.name} with 'exports'...`);
 
-          var find_target_and_implement_updater=replace(mod.code, config)
+          find_target_and_implement_updater=replace(mod.code, config)
 
           find_target_and_implement_updater(
               exportsIdentifier.name,
