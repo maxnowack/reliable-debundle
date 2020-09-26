@@ -103,7 +103,7 @@ function transformRequires(
 
 
         if (config.friendlyExportsFrom) {
-            friendlyExports(mod.code);
+            friendlyExports(mod.code,config);
         }
 
 

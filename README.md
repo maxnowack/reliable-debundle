@@ -68,7 +68,8 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     "regexp": 0,
     "all": 1
     },
-  "friendlyExportsFrom": "require\\.d\\(t, '(\\w+?)', function \\(\\) \\{\\s+ return (\\w+?);\\s+\\}\\)", 
+
+  "friendlyExportsFrom": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)",
 
   "knownPaths": {}
 }
@@ -82,14 +83,15 @@ Always use `variable` for `replaceModules` and `replaceExports`. Because `inline
 `friendlyExportsFrom` can read 
 ``` 
 require.d(t, 'c', function () {
-  return 1;
+  return F1;
 }), require.d(t, 'd', function () {
-  return 2;
+  return F2;
 });
 ```
-and produce
+and **at the bottom of a module** put following code
 ``` 
-exports.c = 1, exports.d = 2;
+exports.c = F1;
+exports.d = F2;
 ```
 
 ## Updates by scil

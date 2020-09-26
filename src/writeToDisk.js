@@ -52,15 +52,6 @@ function writeFile(filePath, contents, replaceResultString) {
         contents = contents.replace(replaceResultString.from, replaceResultString.to)
     }
 
-    // if (friendlyExportsFrom) {
-    //     var temp, data = [];
-    //     while ((temp = friendlyExportsFrom.exec(contents)) !== null) {
-    //         console.log(`friendlyExportsFrom exec found exports.${temp[1]} = ${temp[2]}`)
-    //         data.push(`exports.${temp[1]} = ${temp[2]};`)
-    //     }
-    //     contents += "\n" + data.join("\n")
-    // }
-
     return fs.writeFileSync(filePath, contents);
 }
 

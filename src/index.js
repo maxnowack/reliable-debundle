@@ -88,8 +88,8 @@ if (config.replaceResultString) {
     }
 }
 
-// if(config.friendlyExportsFrom)
-//     config.friendlyExportsFrom = new RegExp(config.friendlyExportsFrom,'g')
+if(config.friendlyExportsFrom)
+    config.friendlyExportsFrom = new RegExp(config.friendlyExportsFrom)
 
 // ----------------------------------------------------------------------------
 // Read in bundle

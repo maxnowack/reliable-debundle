@@ -6,3 +6,4 @@ test_bundles/spotify/
 /.idea
 /.nyc_output
 /coverage
+/.project
