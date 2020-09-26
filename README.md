@@ -116,6 +116,8 @@ file: `src/extern/replace-method/index.js`
 
 7. v0.5.3.6 support `"replaceResultString"`.   
 
+8. v0.5.3.7 support `friendlyExportsFrom`.
+
 ## Efforts to be reliable?
 
 ### 1. support `"replaceRequires": "inline,variable",`
