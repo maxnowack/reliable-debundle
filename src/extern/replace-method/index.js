@@ -17,10 +17,10 @@ module.exports = replacer;
 
 
 class FunctionSameNameInfo {
-    constructor(func, hasSameNameVarOrParam = false, funcDeclarationWithSameName = null) {
-        this.func = func;
-        this.hasSameNameVarOrParam = hasSameNameVarOrParam;
-        this.funcDeclarationWithSameName = funcDeclarationWithSameName;
+    constructor(funcNode, holdSameNameVarOrParam = false, funcDeclaredWithSameName = null) {
+        this.func = funcNode;
+        this.holdSameNameVarOrParam = holdSameNameVarOrParam;
+        this.funcDeclaredWithSameName = funcDeclaredWithSameName;
 
     }
 }
@@ -36,18 +36,18 @@ class FunctionSameNameStack {
         return this.stack.length == 0
     }
 
-    add(func, hasSameNameVarOrParam = null, funcDeclarationWithSameName = null) {
+    add(funcNode, holdSameNameVarOrParam = null, funcDeclaredWithSameName = null) {
         if (this.stack.length > 0) {
-            if (!hasSameNameVarOrParam)
-                hasSameNameVarOrParam = this.stack[this.stack.length - 1].hasSameNameVarOrParam
+            if (!holdSameNameVarOrParam)
+                holdSameNameVarOrParam = this.stack[this.stack.length - 1].holdSameNameVarOrParam
 
-            if (!funcDeclarationWithSameName) {
-                funcDeclarationWithSameName = this.stack[this.stack.length - 1].funcDeclarationWithSameName
+            if (!funcDeclaredWithSameName) {
+                funcDeclaredWithSameName = this.stack[this.stack.length - 1].funcDeclaredWithSameName
             }
 
         }
 
-        this.stack.push(new FunctionSameNameInfo(func, hasSameNameVarOrParam, funcDeclarationWithSameName));
+        this.stack.push(new FunctionSameNameInfo(funcNode, holdSameNameVarOrParam, funcDeclaredWithSameName));
     }
 
     pop() {
@@ -55,13 +55,13 @@ class FunctionSameNameStack {
     }
 
     sameNameVarOrParamIsWorking() {
-        return this.stack.length > 0 && this.stack[this.stack.length - 1].hasSameNameVarOrParam
+        return this.stack.length > 0 && this.stack[this.stack.length - 1].holdSameNameVarOrParam
     }
 
-    getFuncDeclarationWithSameName() {
+    getFuncDeclaredWithSameName() {
         // why >2? because a function named `n` must be at least of level 2
         // webpack would not allocate level 1 functions  the name `n` for naming conflict with require `n`
-        return this.stack.length > 2 && this.stack[this.stack.length - 2].funcDeclarationWithSameName
+        return this.stack.length > 2 && this.stack[this.stack.length - 2].funcDeclaredWithSameName
     }
 
     willTooDeep() {
@@ -69,12 +69,12 @@ class FunctionSameNameStack {
     }
 
     letSameNameWorking() {
-        this.stack[this.stack.length - 1].hasSameNameVarOrParam = true
+        this.stack[this.stack.length - 1].holdSameNameVarOrParam = true
     }
 
 
-    letSameNameWorkingIf(boolDeclarationWithSameName, methodPath, type, path) {
-        if (boolDeclarationWithSameName) {
+    letSameNameWorkingIf(boolDeclaredWithSameName, methodPath, type, path) {
+        if (boolDeclaredWithSameName) {
 
             var code = get_node_code(path)
             code = code.length > 200 ? code.substring(0, 200) + ' ...' : code;
@@ -97,7 +97,7 @@ function replacer(ast, config) {
         ast = parse(ast)
 
     // print code, used for debug
-    find_target_and_implement_updater.code = get_node_code
+    find_target_and_implement_updater.get_node_code = get_node_code
     // why this line?
     // replace.replace = replace
 
@@ -123,16 +123,17 @@ function replacer(ast, config) {
             visitFunction(path) {
 
                 // avoid traversing this subtree.
-                if (config.replaceRequires == 'variable') return false;
+                if (config.replaceRequires === 'variable') return false;
 
                 if (functionsStack.willTooDeep()) return false;
 
+
                 // if the func is named same with methodPath[0]
                 // type FunctionDeclaration has the prop id
-                var boolDeclarationWithSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
+                var boolDeclaredWithSameName = path.value.id ? path.value.id.name == methodPath[0] : false;
 
 
-
+                // whether a param is named same with methodPath[0]
                 /**
                  * function (e, t, n) {
                  *  var u = n(1);
@@ -141,39 +142,38 @@ function replacer(ast, config) {
                  *  }
                  * }
                  */
-
-                // if a param is named same with methodPath[0]
                 let boolParamHasSameName = functionsStack.is_empty() ? null : path.value.params.some(
                     (param) => param.name == methodPath[0])
-
                 if (boolParamHasSameName) {
-                    functionsStack.letSameNameWorkingIf(boolParamHasSameName,methodPath,' function has a param',path.value);
+
+                    // if boolDeclaredWithSameName, must letSameNameWorking
+                    functionsStack.letSameNameWorkingIf(boolDeclaredWithSameName,methodPath,' function ',path.value);
 
                     // return false to
                     // indicate that the traversal need not continue any further down this subtree.
                     // https://github.com/benjamn/ast-types#ast-traversal
                     return false;
-                } else {
-
-                    functionsStack.add(path.value, false, boolDeclarationWithSameName ? path.value : null);
-
-                    this.traverse(path)
-
-                    functionsStack.pop()
                 }
+
+
+
+                functionsStack.add(path.value, false, boolDeclaredWithSameName ? path.value : null);
+                this.traverse(path)
+                functionsStack.pop()
+
 
                 /**
                  * Should be underneath `this.traverse(path)`.
                  * Otherwise
                  *   function n() { return n(0) }
                  * would falsely turn to
-                 *   function n() { return n('./0') }
+                 *   function n() { return n('0') }
                  * which should be correctly
                  *   function n() { return require('./0'); }
                  *
                  * see test: 7-webpack-SameNameVar-visitFunction-innerFunction-name.js
                  */
-                functionsStack.letSameNameWorkingIf(boolDeclarationWithSameName,methodPath,'function', path);
+                functionsStack.letSameNameWorkingIf(boolDeclaredWithSameName, methodPath, 'function', path);
 
             }
 
@@ -192,7 +192,7 @@ function replacer(ast, config) {
                     (dec) => dec.id.type === 'Identifier' && dec.id.name === methodPath[0]
                 )
 
-                functionsStack.letSameNameWorkingIf(boolVarHasSameName,methodPath,'var', path);
+                functionsStack.letSameNameWorkingIf(boolVarHasSameName, methodPath, 'var', path);
 
                 this.traverse(path)
 
@@ -252,7 +252,7 @@ function single(node, methodPath, updater, config, functionsStack) {
 
                 if (functionsStack.sameNameVarOrParamIsWorking()) return 'false';
 
-                if (fun = functionsStack.getFuncDeclarationWithSameName()) {
+                if (fun = functionsStack.getFuncDeclaredWithSameName()) {
                     var inDescendantsOfSameNameDeclaraton =
                         config.inDescendantsOfSameNameDeclaraton === 'ask' ? ask(node, fun, methodPath[0]) : config.inDescendantsOfSameNameDeclaraton
 
@@ -264,7 +264,7 @@ function single(node, methodPath, updater, config, functionsStack) {
                 // MemberExpression:
                 //   n.d(x)
                 // or
-                //   {}.call(n) // how to handle it ? see: hasSameNameVarOrParam
+                //   {}.call(n) // how to handle it ? see: holdSameNameVarOrParam
                 target = node.callee.type === 'MemberExpression' ? node.callee.object : node.callee
 
             } else if (replaceRequires === 'variable') {
