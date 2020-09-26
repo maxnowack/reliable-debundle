@@ -116,6 +116,7 @@ function replacer(ast, config) {
 
         visit(ast, {
 
+            // for same name fun or fun param
             // This method will be called for any node whose type is a subtype of
             // Function (e.g., FunctionDeclaration, FunctionExpression, and
             // ArrowFunctionExpression).
@@ -176,6 +177,7 @@ function replacer(ast, config) {
 
             }
 
+            // for same name var
             , visitVariableDeclaration(path) {
                 if (config.replaceRequires === 'variable') return false;
                 /**
