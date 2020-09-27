@@ -1,7 +1,6 @@
 const path = require('path');
 
 const replace = require('./extern/replace-method');
-const friendlyExports = require('./utils/friendlyExports');
 
 const _getModuleLocation = require('./utils/getModuleLocation');
 const getModuleLocation = _getModuleLocation.getModuleLocation
@@ -102,8 +101,8 @@ function transformRequires(
         }
 
 
-        if (config.friendlyExportsFrom) {
-            friendlyExports(mod.code,config);
+        for(let obj of config.visitor_objects){
+            obj(mod.code,config)
         }
 
 

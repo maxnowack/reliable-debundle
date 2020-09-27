@@ -5,9 +5,16 @@ var parse = recast.parse
 var print = recast.print
 
 
-var get_node_code = require('./get_node_code');
+var get_node_code = require('../utils/get_node_code');
 
-module.exports = function (ast, config) {
+var friendlyExportsFrom=null;
+
+module.exports = function(props,config){
+
+    friendlyExportsFrom = new RegExp(props.regexp)
+    return v
+}
+ function v (ast) {
     visit(ast, {
 
         /*
@@ -17,7 +24,7 @@ module.exports = function (ast, config) {
         visitCallExpression(path) {
             var  target, parentFunction;
 
-            if (target = get_target(path, config)) {
+            if (target = get_target(path)) {
                 // debug
                 var  contents = get_node_code(path.node); console.log('found an exports:'+contents);
 
@@ -148,9 +155,9 @@ function build_VariableAssignment(leftObj, leftField, right) {
     }
 
  */
-function get_target(path, config) {
+function get_target(path) {
     var target, contents = get_node_code(path.node);
-    if ((target = contents.match(config.friendlyExportsFrom)) !== null) {
+    if ((target = contents.match(friendlyExportsFrom)) !== null) {
         console.log(`friendlyExportsFrom exec found exports.${target[1]} = ${target[2]}`)
         return target;
     }

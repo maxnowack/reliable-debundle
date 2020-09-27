@@ -69,7 +69,16 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     "all": 1
     },
 
-  "friendlyExportsFrom": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)",
+  "other_visitors": {
+    "friendlyBool": {
+      "enable": 1
+    },
+    "friendlyExports": {
+      "enable": 1,
+      "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)"
+      }
+  },
+
 
   "knownPaths": {}
 }
@@ -80,7 +89,9 @@ Always use `variable` for `replaceModules` and `replaceExports`. Because `inline
 
 `replaceResultString` used to replace the contents string before `writeToDisk`. 
 
-`friendlyExportsFrom` can read 
+`friendlyBool` can change `!0` to `true`.
+
+`friendlyExports` can read 
 ``` 
 require.d(t, 'c', function () {
   return F1;
@@ -94,6 +105,7 @@ exports.c = F1;
 exports.d = F2;
 ```
 There code allow you jump and refactor in Intellij Idea products.
+
 
 ## Updates by scil
 
@@ -118,6 +130,8 @@ file: `src/extern/replace-method/index.js`
 7. v0.5.3.6 support `"replaceResultString"`.   
 
 8. v0.5.3.7 support `friendlyExportsFrom`.
+
+9. v0.5.3.8 support `friendlyBool`.
 
 ## Efforts to be reliable?
 

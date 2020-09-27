@@ -1,4 +1,4 @@
-// debundle.config=debundle.config-friendlyExportsFrom.json
+// debundle.config=debundle.config-friendlyExports.json
 !(function main(e) {
     var t = {};
 
