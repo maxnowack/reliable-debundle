@@ -93,6 +93,7 @@ and **at the bottom of a module** put following code
 exports.c = F1;
 exports.d = F2;
 ```
+There code allow you jump in Intellij Idea products.
 
 ## Updates by scil
 
