@@ -7,7 +7,7 @@ var print = recast.print
 
 var get_node_code = require('../utils/get_node_code');
 
-module.exports = function(props,config){
+module.exports = function (props, config) {
     return v
 }
 
@@ -19,10 +19,10 @@ function v(ast) {
             if (node.operator === '!' && node.argument.type === 'Literal') {
                 switch (node.argument.value) {
                     case 0:
-                        change_to_bool(node,true)
+                        change_to_bool(node, true)
                         break
                     case 1:
-                        change_to_bool(node,false)
+                        change_to_bool(node, false)
                         break;
                 }
             }
@@ -33,12 +33,9 @@ function v(ast) {
 }
 
 function change_to_bool(node, is_true) {
-    node.type = "ExpressionStatement"
-    node.expression = {
-        "type": "Literal",
-        "value": is_true ? true : false,
-        "raw": is_true ? "true" : "false",
-    }
+    node.type = "Literal"
+    node.value = is_true ? true : false
+    node.raw = is_true ? "true" : "false"
 
     delete node.argument, node.operator
 
