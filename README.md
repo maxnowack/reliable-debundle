@@ -76,7 +76,10 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     "friendlyExports": {
       "enable": 1,
       "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)"
-      }
+      },
+    "reduceComma": {
+      "enable": 1
+    }
   },
 
 
@@ -90,6 +93,8 @@ Always use `variable` for `replaceModules` and `replaceExports`. Because `inline
 `replaceResultString` used to replace the contents string before `writeToDisk`. 
 
 `friendlyBool` can change `!0` to `true`.
+
+`reduceComma` can change `return m,n;` to `m; return n;`.
 
 `friendlyExports` can read 
 ``` 
@@ -132,6 +137,8 @@ file: `src/extern/replace-method/index.js`
 8. v0.5.3.7 support `friendlyExportsFrom`.
 
 9. v0.5.3.8 support `friendlyBool`.
+
+10. v0.5.3.9 support `reduceComma`.
 
 ## Efforts to be reliable?
 

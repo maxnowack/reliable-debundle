@@ -92,7 +92,7 @@ if (config.replaceResultString) {
 config.visitor_objects=[];
 if(config.other_visitors){
     for (const [name, props] of Object.entries(config.other_visitors)) {
-        console.log(`There are ${name}`)
+        console.log(`visitor: ${name}`)
         if(!(props.enable && fs.existsSync(path.resolve( __dirname ,`visitor/${name}.js`)))){
             console.log(` visitor ${name} not enabled`)
         }
