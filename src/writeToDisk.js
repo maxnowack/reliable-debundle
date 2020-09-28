@@ -45,17 +45,24 @@ function defaultExportData(code) {
     };
 }
 
-function writeFile(filePath, contents, replaceResultString) {
+function writeFile(filePath, contents, config) {
     console.log(`* Writing file ${filePath}`);
+
+    var replaceResultString = config.replaceResultString
 
     if (replaceResultString) {
         contents = contents.replace(replaceResultString.from, replaceResultString.to)
     }
 
+
+    for(let obj of config.filter_objects){
+        contents = obj(contents)
+    }
+
     return fs.writeFileSync(filePath, contents);
 }
 
-function writeToDisk(files, replaceResultString) {
+function writeToDisk(files, config) {
     return Promise.all(files.map(({filePath, code}) => {
         let directory = path.dirname(filePath);
 
@@ -76,7 +83,7 @@ function writeToDisk(files, replaceResultString) {
         }
 
         if (fs.existsSync(directory)) {
-            return writeFile(`${path.normalize(filePath)}.js`, code, replaceResultString);
+            return writeFile(`${path.normalize(filePath)}.js`, code, config);
         } else {
             console.log(`* ${directory} doesn't exist, creating...`);
             return new Promise((resolve, reject) => {
@@ -84,7 +91,7 @@ function writeToDisk(files, replaceResultString) {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(writeFile(`${filePath}.js`, code, replaceResultString));
+                        resolve(writeFile(`${filePath}.js`, code, config));
                     }
                 });
             });

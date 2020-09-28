@@ -89,16 +89,22 @@ if (config.replaceResultString) {
 }
 
 
-config.visitor_objects=[];
-if(config.other_visitors){
-    for (const [name, props] of Object.entries(config.other_visitors)) {
-        console.log(`visitor: ${name}`)
-        if(!(props.enable && fs.existsSync(path.resolve( __dirname ,`visitor/${name}.js`)))){
-            console.log(` visitor ${name} not enabled`)
+function prepareObjects(type,config_name){
+    config[`${type}_objects`]=[];
+    if(config[config_name]){
+        for (const [name, props] of Object.entries(config[config_name])) {
+            console.log(`${type}: ${name}`)
+            if(!(props.enable && fs.existsSync(path.resolve( __dirname ,`${type}s/${name}.js`)))){
+                console.log(` ${type} ${name} not enabled`)
+            }
+            config[`${type}_objects`].push( require(`./${type}s/${name}`)(props,config) )
         }
-    config.visitor_objects.push( require(`./visitor/${name}`)(props,config) )
     }
 }
+
+prepareObjects('visitor','other_visitors')
+prepareObjects('filter','filters')
+
 
 // ----------------------------------------------------------------------------
 // Read in bundle
@@ -194,4 +200,4 @@ const files = lookupTableResolver(
 
 console.log('* Writing to disk...');
 const writeToDisk = require('./writeToDisk');
-writeToDisk(files, config.replaceResultString);
+writeToDisk(files, config);

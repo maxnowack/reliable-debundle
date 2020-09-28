@@ -62,12 +62,6 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
   "replaceModules": "variable",
   "replaceExports": "variable",
 
-  "replaceResultString":{
-    "from": "e.exports = require('electron');",
-    "to": "//e.exports = require('electron');",
-    "regexp": 0,
-    "all": 1
-    },
 
   "other_visitors": {
     "friendlyBool": {
@@ -82,6 +76,22 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     }
   },
 
+  "replaceResultString":{
+    "from": "e.exports = require('electron');",
+    "to": "//e.exports = require('electron');",
+    "regexp": 0,
+    "all": 1
+    },
+
+  "filters": {
+    "js-beautify": {
+      "enable": 0,
+      "break_chained_methods": true
+    },
+    "prettier": {
+      "enable": 1
+    }
+    },
 
   "knownPaths": {}
 }
@@ -139,6 +149,10 @@ file: `src/extern/replace-method/index.js`
 9. v0.5.3.8 support `friendlyBool`.
 
 10. v0.5.3.9 support `reduceComma`.
+
+11. v0.5.3.10 support `filters`. used to change produced string.
+
+12. v0.5.3.11 add a new filters`prettier`.
 
 ## Efforts to be reliable?
 

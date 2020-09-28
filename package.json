@@ -24,14 +24,16 @@
     "url": "git+https://github.com/scil/reliable-debundle.git"
   },
   "dependencies": {
-    "acorn": "^7.3.1",
+    "acorn": "^7.4.0",
     "arboreal": "0.0.2",
     "archy": "^1.0.0",
     "escodegen": "^1.14.3",
-    "inquirer": "^7.3.2",
+    "inquirer": "^7.3.3",
+    "js-beautify": "^1.13.0",
     "memoize": "^0.1.1",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
+    "prettier": "2.1.2",
     "promise-map-series": "^0.2.3",
     "prompt-sync": "^4.2.0",
     "recast": "~0.19.1"
@@ -48,6 +50,6 @@
     "node": ">=6"
   },
   "publishConfig": {
-    "registry":"https://npm.pkg.github.com/"
-}
+    "registry": "https://npm.pkg.github.com/"
+  }
 }

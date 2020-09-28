@@ -1,0 +1,32 @@
+{
+  "type": "webpack",
+  "entryPoint": 0,
+  "moduleAst": ["body", 0, "expression", "argument", "arguments", 0],
+  "replaceRequires": "inline",
+  "replaceModules": "variable",
+  "replaceExports": "variable",
+  "friendlyExportsFrom": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)",
+
+  "other_visitors": {
+    "friendlyBool": {
+      "enable": 1
+    },
+    "friendlyExports": {
+      "enable": 1,
+      "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)"
+    },
+    "reduceComma": {
+      "enable": 1
+    }
+  },
+    
+  "filters": {
+    "js-beautify": {
+      "enable": 1,
+      "break_chained_methods": true
+    }
+    },
+
+
+  "knownPaths": {}
+}
