@@ -69,7 +69,7 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     },
     "friendlyExports": {
       "enable": 1,
-      "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)"
+      "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return ([^;]+);\\s+\\}\\)"
       },
     "reduceComma": {
       "enable": 1
