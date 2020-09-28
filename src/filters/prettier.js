@@ -1,11 +1,13 @@
 const prettier = require("prettier");
 
 
-var opts;
+var opts={
+    parser: "babel"
+};
 
 module.exports = function (props, config) {
     delete props.enable
-    opts=props;
+    Object.assign(opts,props);
     return f
 }
 
