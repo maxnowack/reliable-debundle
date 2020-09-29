@@ -72,7 +72,8 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
       "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return ([^;]+);\\s+\\}\\)"
       },
     "reduceComma": {
-      "enable": 1
+      "enable": 1,
+      "support_nest": 0
     }
   },
 
@@ -100,13 +101,29 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
 Always use `variable` for `replaceModules` and `replaceExports`. Because `inline` for both is not supported fully, most times
 `e` and `t` would not be replaced.
 
-`replaceResultString` used to replace the contents string before `writeToDisk`. 
+### `replaceResultString` used to replace the contents string before `writeToDisk`. 
 
-`friendlyBool` can change `!0` to `true`.
+### `friendlyBool` can change `!0` to `true`.
 
-`reduceComma` can change `return m,n;` to `m; return n;`.
+### `reduceComma` can change `return m,n;` to `m; return n;`. `"support_nest": 1` is useful for 
+``` 
+return function(){return m1,m2}, n;
+```
+but maybe not fully guaranteed because `reduceComma` change ast during tree travel.   
+Maybe a better ways is to set multiple visitors for `reduceComma`
+``` 
+    "reduceComma": {
+      "enable": 1,
+      "support_nest": 0
+    },
+    "reduceComma": {
+      "enable": 1,
+      "support_nest": 0
+    }
+```
+      
 
-`friendlyExports` can read 
+### `friendlyExports` can read 
 ``` 
 require.d(t, 'c', function () {
   return F1;
@@ -151,6 +168,8 @@ file: `src/extern/replace-method/index.js`
 10. v0.5.3.9 support `reduceComma`.
 
 11. v0.5.3.10 support `filters`. used to change produced string. added a new filters `prettier`.
+
+12. v0.5.3.11 support `support_nest`.
 
 ## Efforts to be reliable?
 

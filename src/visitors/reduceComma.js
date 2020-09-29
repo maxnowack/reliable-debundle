@@ -9,7 +9,11 @@ var print = recast.print
 
 var get_node_code = require('../utils/get_node_code');
 
+var support_nest = false;
+
 module.exports = function (props, config) {
+    if (props.support_nest) support_nest = true;
+
     return v
 }
 
@@ -56,6 +60,8 @@ function v(ast) {
                 return false;
             }
 
+            var work = null;
+
             switch (path.parentPath.value.type) {
                 case 'ExpressionStatement':
                     index = findExpressionStatementIndexInBody(path.node, body);
@@ -67,7 +73,7 @@ function v(ast) {
                     )
                     break;
                 case 'ReturnStatement':
-                    var last = path.node.expressions.slice(-1)[0],
+                    var last_one_which_need_to_return = path.node.expressions.slice(-1)[0],
                         other = path.node.expressions.slice(0, -1);
 
                     index = findReturnStatementIndexInBody(path.node, body);
@@ -80,18 +86,24 @@ function v(ast) {
                         build_multipe_expStatement(other));
 
                     // new return
-                    path.parentPath.value.argument = last;
+                    path.parentPath.value.argument = last_one_which_need_to_return;
                     // this is the index of new return
                     var return_index = findReturnStatementIndexInBody(null, body);
 
                     // ensure the new return at the bottom of the body
                     _utils.moveToBottom(path.parentPath.value, return_index, body)
                     break;
+                default:
+                    work = false;
 
             }
 
-            return false;
-            // this.traverse(path);
+            if (support_nest || work === false)
+                this.traverse(path);
+            else
+                return false;
+
+
 
         }
     });
