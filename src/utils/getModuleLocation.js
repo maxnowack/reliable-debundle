@@ -1,4 +1,5 @@
 const {default: makeModuleTree, getAllPathsToModule, printModuleTree} = require('./getModulePath');
+const filename_from_mod_id = require("./allowed_filename_from_mod_id");
 const path = require('path');
 
 var fileExt = null
@@ -67,7 +68,7 @@ function getModuleLocation(
   } else {
     // Final fallback - the name of the file is the module id.
     console.warn(`* No lookup tabie for module ${mod.id}, so using identifier as require path...`);
-    modulePaths = [[{id: mod.id, path: `./${mod.id}`}]];
+    modulePaths = [[{id: mod.id, path: `./${filename_from_mod_id(mod.id)}`}]];
   }
 
   /* ['./foo'] => './foo'
