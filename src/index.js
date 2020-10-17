@@ -18,6 +18,7 @@ const bundleLocation = args._[0] || args.input || args.i;
 const outputLocation = args.output || args.o;
 const configPath = args.config || args.c;
 const logLevel = args.log || args.l || 'log';
+const configTest = args.config_test || args.t || false;
 
 if (!(bundleLocation && outputLocation && configPath)) {
     console.log(`This is a debundler - it takes a bundle and expands it into the source that was used to compile it.`);
@@ -29,6 +30,7 @@ if (!(bundleLocation && outputLocation && configPath)) {
     console.log(`   --output, -o  Directory to debundle code into.`);
     console.log(`   --config, -c  Configuration directory`);
     console.log(`   --log, -l  Log level: log > debug `);
+    console.log(`   --config_test, -t  only parse Configuration file `);
     console.log();
     process.exit(1);
 }
@@ -83,28 +85,35 @@ if (config.replaceResultString) {
     if (!('all' in config.replaceResultString))
         config.replaceResultString.all = true
 
-    if (config.replaceResultString.regexp){
+    if (config.replaceResultString.regexp) {
         config.replaceResultString.from = new RegExp(config.replaceResultString.from, config.replaceResultString.all ? 'gm' : '')
     }
 }
 
 
-function prepareObjects(type,config_name){
-    config[`${type}_objects`]=[];
-    if(config[config_name]){
+function prepareObjects(type, config_name) {
+    config[`${type}_objects`] = [];
+    if (config[config_name]) {
         for (const [name, props] of Object.entries(config[config_name])) {
             console.log(`${type}: ${name}`)
-            if(!(props.enable && fs.existsSync(path.resolve( __dirname ,`${type}s/${name}.js`)))){
-                console.log(` ${type} ${name} not enabled`)
+            if (!(props.enable && fs.existsSync(path.resolve(__dirname, `${type}s/${name}.js`)))) {
+                console.log(`  ${type} ${name} not enabled`)
+            }else{
+                console.log(`  require(./${type}s/${name})(props,config) `)
+                config[`${type}_objects`].push(require(`./${type}s/${name}`)(props, config))
             }
-            config[`${type}_objects`].push( require(`./${type}s/${name}`)(props,config) )
         }
     }
 }
 
-prepareObjects('visitor','other_visitors')
-prepareObjects('filter','filters')
+prepareObjects('visitor', 'other_visitors')
+prepareObjects('filter', 'filters')
 
+
+if(configTest) {
+    console.log('\n\n\ntest finished!')
+    return
+}
 
 // ----------------------------------------------------------------------------
 // Read in bundle
