@@ -4,7 +4,6 @@
  * which are not legal for filename
  */
 
-module.exports= function(_id)
-{
-    return  _id.replace(/[/]/g, "__");
+module.exports = function (_id) {
+    return typeof (_id) !== 'string' ? _id : _id.replace(/[/]/g, "__");
 }
