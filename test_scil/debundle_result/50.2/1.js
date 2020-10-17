@@ -22,9 +22,7 @@ i = function (e, t) {
       emptyContent &&
       r.createElement(
         "div",
-        {
-          className: "contentEditablePlaceholder",
-        },
+        { className: "contentEditablePlaceholder" },
         placeholderUntitled
       ),
     r.createElement("div", {

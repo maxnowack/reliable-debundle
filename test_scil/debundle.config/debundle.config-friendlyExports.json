@@ -5,7 +5,6 @@
   "replaceRequires": "inline",
   "replaceModules": "variable",
   "replaceExports": "variable",
-  "friendlyExportsFrom": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return (\\w+?);\\s+\\}\\)",
 
   "other_visitors": {
     "friendlyBool": {
