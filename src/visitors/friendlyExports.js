@@ -7,14 +7,17 @@ var print = recast.print
 
 var get_node_code = require('../utils/get_node_code');
 
-var friendlyExportsFrom=null;
+var friendlyExportsFrom = null;
+var deleteOld = false;
 
-module.exports = function(props,config){
+module.exports = function (props, config) {
 
     friendlyExportsFrom = new RegExp(props.regexp)
+    deleteOld = props.deleteOld
     return v
 }
- function v (ast) {
+
+function v(ast) {
     visit(ast, {
 
         /*
@@ -22,16 +25,23 @@ module.exports = function(props,config){
             require.d(t, "c", function() { return 1; })
          */
         visitCallExpression(path) {
-            var  target, parentFunction;
+            var target, parentFunction;
 
             if (target = get_target(path)) {
                 // debug
-                var  contents = get_node_code(path.node); console.log('found an exports:'+contents);
+                var contents = get_node_code(path.node);
+                console.log('found an exports:' + contents);
 
                 parentFunction = get_parent_function(path, 0);
                 if (parentFunction) {
                     parentFunction.body.body.push(build_VariableAssignment('exports', target[1], target[2]))
                 }
+
+                if (deleteOld) {
+                    path.value.type = 'Literal'
+                    path.value.value =path.value.raw = `exports.${target[1] } = ${target[2]}`
+                }
+
                 return false;
             }
 
