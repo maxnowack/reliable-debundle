@@ -147,14 +147,13 @@ function replacer(ast, config) {
                 if (boolParamHasSameName) {
 
                     // if boolDeclaredWithSameName, must letSameNameWorking
-                    functionsStack.letSameNameWorkingIf(boolDeclaredWithSameName,methodPath,' function ',path.value);
+                    functionsStack.letSameNameWorkingIf(boolDeclaredWithSameName, methodPath, ' function ', path.value);
 
                     // return false to
                     // indicate that the traversal need not continue any further down this subtree.
                     // https://github.com/benjamn/ast-types#ast-traversal
                     return false;
                 }
-
 
 
                 functionsStack.add(path.value, false, boolDeclaredWithSameName ? path.value : null);
@@ -180,16 +179,28 @@ function replacer(ast, config) {
             // for same name var
             , visitVariableDeclaration(path) {
                 if (config.replaceRequires === 'variable') return false;
+
                 /**
+                 *case1: dec.id.type === 'Identifier'
                  * function (e, t, n) {
                  *  var u = n(1);
                  *  function c(){
                  *    var n =3; // ★★★ find the var n which has same name with requrie
                  *  }
                  * }
+                 *
+                 *case2: dec.id.type === 'ObjectPattern'
+                 * const { onUpdate: t, onSubmit: n } = this.props;  // ★★★ test file: 3.1-webpack-SameNameVar-VariableDeclaration-ObjectPatern.js
+                 *
                  */
                 var boolVarHasSameName = path.value.declarations.some(
-                    (dec) => dec.id.type === 'Identifier' && dec.id.name === methodPath[0]
+                    (dec) =>
+                        (dec.id.type === 'Identifier' && dec.id.name === methodPath[0])
+                        ||
+                        (dec.id.type === 'ObjectPattern' && dec.id.properties.some(
+                                (property) => property.value.name === methodPath[0]
+                            )
+                        )
                 )
 
                 functionsStack.letSameNameWorkingIf(boolVarHasSameName, methodPath, 'var', path);
@@ -301,7 +312,7 @@ function single(path, methodPath, updater, config, functionsStack) {
     }
 
 
-    return updater(node,path)
+    return updater(node, path)
 }
 
 function nested(path, size) {
@@ -324,6 +335,6 @@ function nested(path, size) {
     if (!o.object || !o.object.name) return
     if (o.object.name !== methodPath[0]) return
 
-    return updater(node,path)
+    return updater(node, path)
 }
 
