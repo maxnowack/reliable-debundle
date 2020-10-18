@@ -196,7 +196,7 @@ modules = transformRequires(modules,
 
 console.log('* Resolving files...');
 const lookupTableResolver = require('./lookupTable');
-const files = lookupTableResolver(
+const codesOfFiles = lookupTableResolver(
     modules,
     config.knownPaths,
     config.entryPoint,
@@ -210,4 +210,4 @@ const files = lookupTableResolver(
 
 console.log('* Writing to disk...');
 const writeToDisk = require('./writeToDisk');
-writeToDisk(files, config);
+writeToDisk(codesOfFiles, config);

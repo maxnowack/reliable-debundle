@@ -9,12 +9,12 @@ const getModuleLocation = _getModuleLocation.getModuleLocation
 // (ast)}] or something similar.
 function lookupTableResolver(modules, knownPaths, entryPointModuleId, type="browserify", pathPrefix='dist/') {
   // Assemble the file structure on disk.
-  return modules.map(i => {
+  return modules.map(mod => {
     return {
       // The bello appendTrailingIndexFilesToNodeModules will make node_modules contain `index`
       // files, so `foo` => `node_modules/foo/index` (without the flag, `foo` => `node_modules/foo`)
-      filePath: getModuleLocation(modules, i, knownPaths, pathPrefix, /* appendTrailingIndexFilesToNodeModules: */ true, entryPointModuleId),
-      code: i.code,
+      filePath: getModuleLocation(modules, mod, knownPaths, pathPrefix, /* appendTrailingIndexFilesToNodeModules: */ true, entryPointModuleId),
+      code: mod.code,
     };
   });
 }

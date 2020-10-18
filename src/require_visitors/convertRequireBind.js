@@ -20,9 +20,8 @@ var all_mod_by_bind = [];
 
 function v(path, _replaer_requires) {
     if (path.node.type !== 'CallExpression') return
-    // visit(ast, {
-    // visitCallExpression(path) {
     var target, parentFunction, new_, mod_name, result, new_require_statement, try_statement,try_statement_str;
+
     if (target = get_target(path)) {
 
         mod_name = target[1]
@@ -53,13 +52,9 @@ function v(path, _replaer_requires) {
 
         }
 
-        // return false;
 
     }
 
-    // this.traverse(path);
-    // }
-    // });
 }
 
 const max_try_times = 10;

@@ -56,7 +56,8 @@ function v(ast) {
             var index, body = path.parentPath.parentPath.value;
 
             if (!Array.isArray(body)) {
-                console.log(`not array: ${get_node_code(body)}`)
+                //debug
+                //console.log(`not array: ${get_node_code(body)}`)
                 return false;
             }
 

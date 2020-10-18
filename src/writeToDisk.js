@@ -62,8 +62,8 @@ function writeFile(filePath, contents, config) {
     return fs.writeFileSync(filePath, contents);
 }
 
-function writeToDisk(files, config) {
-    return Promise.all(files.map(({filePath, code}) => {
+function writeToDisk(codesOfFiles, config) {
+    return Promise.all(codesOfFiles.map(({filePath, code}) => {
         let directory = path.dirname(filePath);
 
         // Any modules that are wrapped in a function (because they were bundled code) should be
