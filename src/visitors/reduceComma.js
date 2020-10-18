@@ -1,4 +1,4 @@
-const _utils = require('./_utils')
+const _utils = require('../utils/visitor_utils')
 
 var recast = require('recast')
 var visit = recast.types.visit

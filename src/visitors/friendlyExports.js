@@ -5,6 +5,7 @@ var parse = recast.parse
 var print = recast.print
 
 
+const _utils = require('../utils/visitor_utils')
 var get_node_code = require('../utils/get_node_code');
 
 var friendlyExportsFrom = null;
@@ -25,21 +26,21 @@ function v(ast) {
             require.d(t, "c", function() { return 1; })
          */
         visitCallExpression(path) {
-            var target, parentFunction;
+            var target, parentFunction, new_;
 
             if (target = get_target(path)) {
                 // debug
-                var contents = get_node_code(path.node);
-                console.log('found an exports:' + contents);
+                // var contents = get_node_code(path.node);console.log('found an exports:' + contents);
 
-                parentFunction = get_parent_function(path, 0);
+                parentFunction = _utils.get_parent_function(path, 0);
                 if (parentFunction) {
-                    parentFunction.body.body.push(build_VariableAssignment('exports', target[1], target[2]))
+                    new_ = build_VariableAssignment('exports', target[1], target[2])
+                    parentFunction.body.body.push(new_)
                 }
 
                 if (deleteOld) {
                     path.value.type = 'Literal'
-                    path.value.value =path.value.raw = `exports.${target[1] } = ${target[2]}`
+                    path.value.value = path.value.raw = `exports.${target[1]} = ${target[2]}`
                 }
 
                 return false;
@@ -55,17 +56,6 @@ function v(ast) {
     });
 }
 
-const max_try_times = 4;
-
-function get_parent_function(path, try_time) {
-    if (try_time > max_try_times) return null;
-
-    if (path.parent && path.parent.node.type === 'FunctionExpression') {
-        return path.parent.node
-    } else
-        return get_parent_function(path.parent, try_time + 1)
-
-}
 
 /**
  * to produce:  leftObj.leftField = right

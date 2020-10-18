@@ -200,7 +200,7 @@ function replacer(ast, config) {
 
             , visitCallExpression(path) {
                 // console.log(path)
-                const result = size === 1 ? single(path.node, methodPath, updater, config, functionsStack) : nested(path.node, size)
+                const result = size === 1 ? single(path, methodPath, updater, config, functionsStack) : nested(path, size)
 
                 if (result === 'false') {
                     // return false to
@@ -240,10 +240,11 @@ function ask(code, fun, method) {
     return ans;
 }
 
-function single(node, methodPath, updater, config, functionsStack) {
+function single(path, methodPath, updater, config, functionsStack) {
     var replaceRequires = config.replaceRequires
     var target = null;
     var fun = null;
+    var node = path.node
 
     switch (node.type) {
         case 'CallExpression':
@@ -300,10 +301,11 @@ function single(node, methodPath, updater, config, functionsStack) {
     }
 
 
-    return updater(node)
+    return updater(node,path)
 }
 
-function nested(node, size) {
+function nested(path, size) {
+    var node = path.node
     if (node.type !== 'CallExpression') return
 
     var c = node.callee
@@ -322,6 +324,6 @@ function nested(node, size) {
     if (!o.object || !o.object.name) return
     if (o.object.name !== methodPath[0]) return
 
-    return updater(node)
+    return updater(node,path)
 }
 

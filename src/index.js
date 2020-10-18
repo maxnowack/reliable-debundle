@@ -106,6 +106,7 @@ function prepareObjects(type, config_name) {
     }
 }
 
+prepareObjects('require_visitor', 'require_visitors')
 prepareObjects('visitor', 'other_visitors')
 prepareObjects('filter', 'filters')
 

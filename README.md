@@ -62,6 +62,11 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
   "replaceModules": "variable",
   "replaceExports": "variable",
 
+  "require_visitors": {
+    "convertRequireBind": {
+      "enable": 1
+    }
+  },
 
   "other_visitors": {
     "friendlyBool": {
@@ -139,6 +144,11 @@ exports.d = F2;
 ```
 There code allow you jump and refactor in Intellij Idea products.
 
+### `convertRequireBind` can support modules requied async
+
+It would produce new statement `require('./bcs1');` from  `require.bind(null, 'bcs1')`
+
+`require_visitors` works for the node found related with `require`. This type of visitors can created new code and find and replace `require` in the new code.
 
 ## Updates by scil
 
