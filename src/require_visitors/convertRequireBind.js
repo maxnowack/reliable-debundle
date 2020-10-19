@@ -1,5 +1,7 @@
 const acorn = require('acorn');
 const _utils = require('../utils/visitor_utils')
+const _getModuleLocation = require('../utils/getModuleLocation');
+const get_relative_moduleLocation = _getModuleLocation.get_relative_moduleLocation
 
 var recast = require('recast')
 var visit = recast.types.visit
@@ -18,13 +20,21 @@ module.exports = function (props, config) {
 
 var all_mod_by_bind = [];
 
-function v(path, _replaer_requires) {
-    if (path.node.type !== 'CallExpression') return
-    var target, parentFunction, new_, mod_name, result, new_require_statement, try_statement,try_statement_str;
+/**
+ *
+ * case: r.bind(null, "bcs1")
+ */
+
+function v(
+    mod,  modules, knownPaths, entryPointModuleId,
+    path, _replaer_requires, update_RequireVar, should_replace,replaceRequires, requireFunctionIdentifier ) {
+    if (path.node.type !== 'CallExpression') return false;
+    var target, parentFunction, new_, mod_name, result, new_require_statement, try_statement,try_statement_str, moduleLocationOrOriginalNode;
 
     if (target = get_target(path)) {
 
         mod_name = target[1]
+
 
         if (all_mod_by_bind.indexOf(mod_name) === -1) {
 
@@ -43,7 +53,8 @@ function v(path, _replaer_requires) {
                         try {
                             ${get_node_code(new_require_statement)}
                         } catch (e) {
-                            console.log('module "${mod_name}" should be fetched asyned from server')
+                            console.log(e.message); 
+                            console.log('Sth wrong with a module whoes origin name is "${mod_name}" which maybe changed by debundle, like "/" to "__"')
                         }
                 `
                 try_statement = acorn.parse(try_statement_str, {})
@@ -52,9 +63,44 @@ function v(path, _replaer_requires) {
 
         }
 
+        moduleLocationOrOriginalNode = get_relative_moduleLocation(path.node,mod, mod_name, modules, knownPaths, entryPointModuleId)
+
+        // location , or origianlNode which return false and give back the control to TransformRequires
+        if(typeof(moduleLocationOrOriginalNode)!=='string') return false;
+
+        return {
+            scil_debundle: "by_visitor",
+            type: 'CallExpression',
+            // If replacing all require calls in the ast with the identifier `require`, use
+            // that identifier (`require`). Otherwise, keep it the same.
+            callee: should_replace(replaceRequires) ? {
+                type: 'Identifier',
+                name: 'require',
+            } : requireFunctionIdentifier,
+            arguments: [
+                // Substitute in the module location on disk
+                {type: 'Literal', value: moduleLocationOrOriginalNode, raw: moduleLocationOrOriginalNode},
+            ],
+        }
+
+
+        return {
+            scil_debundle: "by_visitor",
+            type: 'CallExpression',
+            "callee": {
+                "type": "MemberExpression",
+                "object": update_RequireVar(replaceRequires, requireFunctionIdentifier),
+                "property": path.node.callee.property,
+            },
+            arguments: [
+                {type: 'Literal', value: null, raw: "null"},
+                {type: 'Literal', value: moduleLocationOrOriginalNode, raw: moduleLocationOrOriginalNode},
+            ],
+        };
 
     }
 
+    return false;
 }
 
 const max_try_times = 10;

@@ -5,5 +5,6 @@ require.bind(null, '++M');
 try {
   r('++M');
 } catch (e) {
-  console.log('module "++M" should be fetched asyned from server');
+  console.log(e.message);
+  console.log('Sth wrong with a module whoes origin name is "++M" which maybe changed by debundle, like "/" to "__"');
 }

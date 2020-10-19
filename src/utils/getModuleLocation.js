@@ -136,6 +136,39 @@ function getModuleLocation(
   return filePath;
 }
 
+function get_relative_moduleLocation(node,this_mod, that_mod_name, modules, knownPaths, entryPointModuleId) {
+
+  const that_mod = modules.find(i => i.id === that_mod_name);
+
+  // FIXME:
+  // In the spotify bundle someone did a require(null)? What is that supposed to do?
+  if (!that_mod) {
+    // throw new Error(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
+    console.warn(`Module ${node.arguments[0].value} cannot be found, but another module (${this_mod.id}) requires it in.`);
+    return node;
+  }
+
+  // This module's path
+  let this_module_path = path.dirname(getModuleLocation(modules, this_mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId));
+  // The module to import relative to the current module
+  let that_module_path = getModuleLocation(modules, that_mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId);
+
+  // Get a relative path from the current module to the module to require in.
+  let moduleLocation = path.relative(
+      this_module_path,
+      that_module_path
+  );
+
+  // If the module path references a node_module, then remove the node_modules prefix
+  if (moduleLocation.indexOf('node_modules/') !== -1) {
+    moduleLocation = `${moduleLocation.match(/node_modules\/(.+)$/)[1]}`
+  } else if (!moduleLocation.startsWith('.')) {
+    // Make relative paths start with a ./
+    moduleLocation = `./${moduleLocation}`;
+  }
+
+  return moduleLocation
+}
 function reverseObject(obj) {
   return Object.keys(obj).reduce((acc, i) => {
     acc[obj[i]] = i; // Reverse keys and values
@@ -143,7 +176,7 @@ function reverseObject(obj) {
   }, {});
 }
 
-module.exports = {setFileExt ,getModuleLocation};
+module.exports = {setFileExt ,getModuleLocation,get_relative_moduleLocation};
 
 if (require.main === module) {
   let modules = [

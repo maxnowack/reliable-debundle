@@ -3,7 +3,7 @@ const path = require('path');
 const replace = require('./extern/replace-method');
 
 const _getModuleLocation = require('./utils/getModuleLocation');
-const getModuleLocation = _getModuleLocation.getModuleLocation
+const get_relative_moduleLocation = _getModuleLocation.get_relative_moduleLocation
 
 var inlineOrVariable = require('./utils/inlineOrVariable');
 var should_replace = inlineOrVariable.should_replace;
@@ -67,8 +67,6 @@ function transformRequires(
         // wasn't mangled, and if it was, then update the closure contents to use `module` not the
         // mangled variable.
         let moduleIdentifier = mod.code.params[config.type === 'webpack' ? 0 : 1];
-
-
         if (moduleIdentifier && moduleIdentifier.name !== 'module') {
             if (should_replace(config.replaceModules)) {
                 console.log(`* Replacing ${moduleIdentifier.name} with 'module'...`);
@@ -154,11 +152,21 @@ function replace_requires(mod, modules, requireFunctionIdentifier, config, find_
         // only for debugging in WebStrom watch
         print = print
 
-        // in require_visitors, _replaer_requires is called with paraeter path, stopping the probability of indefinet loop
+        // the worth of node_path:
+        //      in require_visitors, _replaer_requires is called with paraeter path, stopping the probability of indefinet loop
         if (node_path) {
+            var node_throught_require_visitors = node_path, result_from_require_visitor, node_updated = false;
             for (let obj of config.require_visitor_objects) {
-                obj(node_path, _replaer_requires)
+                result_from_require_visitor = obj(
+                    mod,  modules, knownPaths, entryPointModuleId,
+                    node_throught_require_visitors, _replaer_requires, update_RequireVar,should_replace, replaceRequires, requireFunctionIdentifier)
+                if (result_from_require_visitor && result_from_require_visitor.scil_debundle) {
+                    node_throught_require_visitors = result_from_require_visitor
+                    node_updated = true;
+                }
             }
+            // return the node returned from visitors, or go on to let node not handlded by require_visitors any more
+            if (node_updated) return node_throught_require_visitors;
         }
 
         switch (node.type) {
@@ -182,40 +190,17 @@ function replace_requires(mod, modules, requireFunctionIdentifier, config, find_
                     return update_Argument(node, replaceRequires, requireFunctionIdentifier)
                 }
 
+                // case: n.n(x)
                 if (node.callee.type == 'MemberExpression') {
                     return update_MemberExpression(node, replaceRequires, requireFunctionIdentifier);
                 }
 
+                // case: n(1)
                 // If a module id is in the require, then do the require.
                 if (node.arguments[0].type === 'Literal') {
-                    const moduleToRequire = modules.find(i => i.id === node.arguments[0].value);
-
-                    // FIXME:
-                    // In the spotify bundle someone did a require(null)? What is that supposed to do?
-                    if (!moduleToRequire) {
-                        // throw new Error(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
-                        console.warn(`Module ${node.arguments[0].value} cannot be found, but another module (${mod.id}) requires it in.`);
-                        return node;
-                    }
-
-                    // This module's path
-                    let this_module_path = path.dirname(getModuleLocation(modules, mod, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ true, entryPointModuleId));
-                    // The module to import relative to the current module
-                    let that_module_path = getModuleLocation(modules, moduleToRequire, knownPaths, path.sep, /* appendTrailingIndexFilesToNodeModules */ false, entryPointModuleId);
-
-                    // Get a relative path from the current module to the module to require in.
-                    let moduleLocation = path.relative(
-                        this_module_path,
-                        that_module_path
-                    );
-
-                    // If the module path references a node_module, then remove the node_modules prefix
-                    if (moduleLocation.indexOf('node_modules/') !== -1) {
-                        moduleLocation = `${moduleLocation.match(/node_modules\/(.+)$/)[1]}`
-                    } else if (!moduleLocation.startsWith('.')) {
-                        // Make relative paths start with a ./
-                        moduleLocation = `./${moduleLocation}`;
-                    }
+                    var moduleNameToRequire = node.arguments[0].value;
+                    var moduleLocationOrOriginalNode = get_relative_moduleLocation(node,mod, moduleNameToRequire, modules, knownPaths, entryPointModuleId)
+                    if(typeof(moduleLocationOrOriginalNode)!=='string') return moduleLocationOrOriginalNode
 
                     return {
                         type: 'CallExpression',
@@ -227,7 +212,7 @@ function replace_requires(mod, modules, requireFunctionIdentifier, config, find_
                         } : requireFunctionIdentifier,
                         arguments: [
                             // Substitute in the module location on disk
-                            {type: 'Literal', value: moduleLocation, raw: moduleLocation},
+                            {type: 'Literal', value: moduleLocationOrOriginalNode, raw: moduleLocationOrOriginalNode},
                             ...node.arguments.slice(1),
                         ],
                     };

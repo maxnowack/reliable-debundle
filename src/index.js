@@ -8,6 +8,7 @@ const args = require('minimist')(process.argv.slice(2));
 const convertToIntegerKey = require('./utils/convertToIntegerKey');
 
 const _getModuleLocation = require('./utils/getModuleLocation');
+var get_node_code = require('./utils/get_node_code');
 const setFileExt = _getModuleLocation.setFileExt
 
 // ----------------------------------------------------------------------------
