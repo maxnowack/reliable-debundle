@@ -79,6 +79,10 @@
     "use strict";
     /// n(0)
     e.exports = n(1)
+      function x(){
+          let { color: n = m.hsl(0, 0.01, 0.07), } = e;
+          n(1);
+      }
   }
   , function (e, t, n) {
     var x = n(0);

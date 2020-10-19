@@ -189,16 +189,20 @@ function replacer(ast, config) {
                  *  }
                  * }
                  *
-                 *case2: dec.id.type === 'ObjectPattern'
+                 *case2:
                  * const { onUpdate: t, onSubmit: n } = this.props;  // ★★★ test file: 3.1-webpack-SameNameVar-VariableDeclaration-ObjectPatern.js
                  *
+                 *case3:
+                 *   let { color: n = r.hsl(0, 0.01, 0.07), } = e;
                  */
                 var boolVarHasSameName = path.value.declarations.some(
                     (dec) =>
                         (dec.id.type === 'Identifier' && dec.id.name === methodPath[0])
                         ||
                         (dec.id.type === 'ObjectPattern' && dec.id.properties.some(
-                                (property) => property.value.name === methodPath[0]
+                                (property) =>
+                                    property.value.name === methodPath[0]   // case2
+                                || (property.value.type==='AssignmentPattern' && property.value.left.name===methodPath[0]) //case3
                             )
                         )
                 )
