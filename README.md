@@ -61,6 +61,7 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
   "replaceRequires": "inline,variable",
   "replaceModules": "variable",
   "replaceExports": "variable",
+  "variableType": "const",
 
   "require_visitors": {
     "convertRequireBind": {

@@ -129,7 +129,7 @@ function add_variable(config, configItem, identifier, mod, name) {
         // ie, `const t = module;`
         console.log(`* Aliasing ${identifier.name} with '${name}'...`);
         mod.code.body.body.unshift(
-            build_VariableAssignment(identifier, {type: 'Identifier', name: name})
+            build_VariableAssignment(identifier, {type: 'Identifier', name: name},config.variableType)
         );
 
     }
@@ -248,7 +248,7 @@ function replace_requires(mod, modules, requireFunctionIdentifier, config, find_
 }
 
 
-function build_VariableAssignment(variableIdentifier, contentIdentifier) {
+function build_VariableAssignment(variableIdentifier, contentIdentifier, type) {
     return {
         "type": "VariableDeclaration",
         "declarations": [
@@ -258,7 +258,7 @@ function build_VariableAssignment(variableIdentifier, contentIdentifier) {
                 "init": contentIdentifier,
             },
         ],
-        "kind": "const",
+        "kind": type,
     };
 }
 
