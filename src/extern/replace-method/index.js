@@ -282,6 +282,15 @@ function single(path, methodPath, updater, config, functionsStack) {
                 // or
                 //   {}.call(n) // how to handle it ? see: holdSameNameVarOrParam
                 target = node.callee.type === 'MemberExpression' ? node.callee.object : node.callee
+                if( node.callee.type === 'MemberExpression'){
+                    if(node.callee.object.type==='MemberExpression')
+                        target = node.callee.object.object // n.d1.d2(x)
+                    else
+                        target= node.callee.object  // n.d(x)
+
+                }else{
+                    target= node.callee
+                }
 
             } else if (replaceRequires === 'variable') {
                 target = node.callee;

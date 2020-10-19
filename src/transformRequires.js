@@ -4,6 +4,7 @@ const replace = require('./extern/replace-method');
 
 const _getModuleLocation = require('./utils/getModuleLocation');
 const get_relative_moduleLocation = _getModuleLocation.get_relative_moduleLocation
+const found_location = _getModuleLocation.found_location
 
 var inlineOrVariable = require('./utils/inlineOrVariable');
 var should_replace = inlineOrVariable.should_replace;
@@ -200,7 +201,7 @@ function replace_requires(mod, modules, requireFunctionIdentifier, config, find_
                 if (node.arguments[0].type === 'Literal') {
                     var moduleNameToRequire = node.arguments[0].value;
                     var moduleLocationOrOriginalNode = get_relative_moduleLocation(node,mod, moduleNameToRequire, modules, knownPaths, entryPointModuleId)
-                    if(typeof(moduleLocationOrOriginalNode)!=='string') return moduleLocationOrOriginalNode
+                    if(!found_location(moduleLocationOrOriginalNode)) return moduleLocationOrOriginalNode;
 
                     return {
                         type: 'CallExpression',

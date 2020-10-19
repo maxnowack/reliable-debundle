@@ -2,6 +2,7 @@ const acorn = require('acorn');
 const _utils = require('../utils/visitor_utils')
 const _getModuleLocation = require('../utils/getModuleLocation');
 const get_relative_moduleLocation = _getModuleLocation.get_relative_moduleLocation
+const found_location = _getModuleLocation.found_location
 
 var recast = require('recast')
 var visit = recast.types.visit
@@ -12,7 +13,11 @@ var print = recast.print
 
 var get_node_code = require('../utils/get_node_code');
 
-var target_regexp = new RegExp(/r\.bind\(null, "([^"]+)"\)/);
+/**
+ *  n.t.bind(null, './i8i4', 7)
+ *  n.bind(null, 'J9+s')
+ */
+var target_regexp = new RegExp(/\w(.t)?\.bind\(null, ["']([^"]+)["']/);
 
 module.exports = function (props, config) {
     return v
@@ -22,79 +27,111 @@ var all_mod_by_bind = [];
 
 /**
  *
- * case: r.bind(null, "bcs1")
+ * case:
+ *  n.t.bind(null, './i8i4', 7)
+ *  n.bind(null, 'J9+s')
  */
 
 function v(
-    mod,  modules, knownPaths, entryPointModuleId,
-    path, _replaer_requires, update_RequireVar, should_replace,replaceRequires, requireFunctionIdentifier ) {
+    mod, modules, knownPaths, entryPointModuleId,
+    path, _replaer_requires, update_RequireVar, should_replace, replaceRequires, requireFunctionIdentifier) {
     if (path.node.type !== 'CallExpression') return false;
-    var target, parentFunction, new_, mod_name, result, new_require_statement, try_statement,try_statement_str, moduleLocationOrOriginalNode;
+    var target, parentFunction, new_, mod_name, result, new_require_statement, try_statement, try_statement_str,
+        moduleLocationOrOriginalNode,mod_location_or_name;
 
     if (target = get_target(path)) {
 
-        mod_name = target[1]
+        method_name = target[1]? target[1].substr(1):null // t in  n.t.bind(null, './i8i4', 7)
+        mod_name = target[2]
 
+        moduleLocationOrOriginalNode = get_relative_moduleLocation(path.node, mod, mod_name, modules, knownPaths, entryPointModuleId)
+        mod_location_or_name = found_location(moduleLocationOrOriginalNode)? moduleLocationOrOriginalNode: mod_name;
 
-        if (all_mod_by_bind.indexOf(mod_name) === -1) {
+        /**
+         * append require(xxx) to parentFuncion.
+         * do nothing on browses, just a trick to make webpack to collect mod with name ${mod_name}
+         */
+        if (all_mod_by_bind.indexOf(mod_name) === -1) { // ensure to no repeat
 
             parentFunction = _utils.get_parent_function(path, 0, 15);
             if (parentFunction) {
                 all_mod_by_bind.push(mod_name)
-                new_ = build_require(mod_name)
-                result = _replaer_requires(new_, null);
-                new_require_statement = {
 
-                    type: 'ExpressionStatement',
-                    expression: result
-                }
+                // new_ = build_require(mod_name)
+                // result = _replaer_requires(new_, null);
+                // new_require_statement = {
+                //
+                //     type: 'ExpressionStatement',
+                //     expression: result
+                // }
 
                 try_statement_str = `
                         try {
-                            ${get_node_code(new_require_statement)}
+                        true; // do nothing on browses, just a trick to make webpack to collect mod with name ${mod_name}
                         } catch (e) {
-                            console.log(e.message); 
-                            console.log('Sth wrong with a module whoes origin name is "${mod_name}" which maybe changed by debundle, like "/" to "__"')
+                            require('${mod_location_or_name}');
                         }
                 `
+
                 try_statement = acorn.parse(try_statement_str, {})
                 parentFunction.body.body.push(try_statement.body[0])
             }
 
         }
 
-        moduleLocationOrOriginalNode = get_relative_moduleLocation(path.node,mod, mod_name, modules, knownPaths, entryPointModuleId)
 
         // location , or origianlNode which return false and give back the control to TransformRequires
-        if(typeof(moduleLocationOrOriginalNode)!=='string') return false;
-
-        return {
-            scil_debundle: "by_visitor",
-            type: 'CallExpression',
-            // If replacing all require calls in the ast with the identifier `require`, use
-            // that identifier (`require`). Otherwise, keep it the same.
-            callee: should_replace(replaceRequires) ? {
-                type: 'Identifier',
-                name: 'require',
-            } : requireFunctionIdentifier,
-            arguments: [
-                // Substitute in the module location on disk
-                {type: 'Literal', value: moduleLocationOrOriginalNode, raw: moduleLocationOrOriginalNode},
-            ],
-        }
+        // if(!found_location(moduleLocationOrOriginalNode)) return false;
 
 
-        return {
+        // return {
+        //     scil_debundle: "by_visitor",
+        //     type: 'CallExpression',
+        //     // If replacing all require calls in the ast with the identifier `require`, use
+        //     // that identifier (`require`). Otherwise, keep it the same.
+        //     callee: should_replace(replaceRequires) ? {
+        //         type: 'Identifier',
+        //         name: 'require',
+        //     } : requireFunctionIdentifier,
+        //     arguments: [
+        //         // Substitute in the module location on disk
+        //         {type: 'Literal', value: mod_location, raw: mod_location},
+        //     ],
+        // }
+
+
+        return method_name ? {
             scil_debundle: "by_visitor",
             type: 'CallExpression',
             "callee": {
                 "type": "MemberExpression",
-                "object": update_RequireVar(replaceRequires, requireFunctionIdentifier),
                 "property": path.node.callee.property,
+                "object":{
+                    "type": "MemberExpression",
+                    "object": update_RequireVar(replaceRequires, requireFunctionIdentifier),
+                    "property":{
+                        "type":"Identifier",
+                        "name":method_name
+                    }
+                }
+
             },
             arguments: [
                 {type: 'Literal', value: null, raw: "null"},
-                {type: 'Literal', value: moduleLocationOrOriginalNode, raw: moduleLocationOrOriginalNode},
+                {type: 'Literal', value: mod_location_or_name, raw: mod_location_or_name},
+                ...path.node.arguments.slice(2),
+            ],
+        } : {
+            scil_debundle: "by_visitor",
+            type: 'CallExpression',
+            "callee": {
+                "type": "MemberExpression",
+                "property": path.node.callee.property,
+                "object": update_RequireVar(replaceRequires, requireFunctionIdentifier),
+            },
+            arguments: [
+                {type: 'Literal', value: null, raw: "null"},
+                {type: 'Literal', value: mod_location_or_name, raw: mod_location_or_name},
             ],
         };
 

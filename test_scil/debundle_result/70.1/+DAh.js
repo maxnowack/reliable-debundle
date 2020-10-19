@@ -1,9 +1,11 @@
 const t = exports;
 const e = module;
 'use strict';
+require.t.bind(null, 'empty', 7);
+require.t.bind(null, './VBxf', 7);
 require.r(t);
-const a = { ko: () => require.e(2).then(require('./bcs1')) };
-var m = 2, n = t.indexOf('execSqliteBatch') > -1 ? Pomise.resolve().then(require('./4Frv')).AllMigrations : void 0;
+const a = { ko: () => require.e(2).then(require.bind(null, './bcs1')) };
+var m = 2, n = t.indexOf('execSqliteBatch') > -1 ? Pomise.resolve().then(require.bind(null, './4Frv')).AllMigrations : void 0;
 class rS extends b.a {
   abc() {
     return n.createElement(Kt.a, {
@@ -14,10 +16,9 @@ class rS extends b.a {
       render: e
     });
     try {
-      r('7YLs');
+      true;
     } catch (e) {
-      console.log(e.message);
-      console.log('Sth wrong with a module whoes origin name is "7YLs" which maybe changed by debundle, like "/" to "__"');
+      require('7YLs');
     }
   }
 }
@@ -25,41 +26,40 @@ var {getSharedPages: e} = Promise.resolve().then(require.bind(null, 'qX+M'));
 const [{default: u}, p, h] = Promise.all([
   Promise.resolve().then(require.bind(null, 'A9TN')),
   Promise.resolve().then(require.bind(null, '6Ydq')),
-  Promise.resolve().then(require('./VBxf'))
+  Promise.resolve().then(require.bind(null, './VBxf'))
 ]);
 try {
-  require('./bcs1');
+  true;
 } catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "bcs1" which maybe changed by debundle, like "/" to "__"');
+  require('empty');
 }
 try {
-  require('./4Frv');
+  true;
 } catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "4Frv" which maybe changed by debundle, like "/" to "__"');
-}
-try {
-  r('qX+M');
-} catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "qX+M" which maybe changed by debundle, like "/" to "__"');
-}
-try {
-  r('A9TN');
-} catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "A9TN" which maybe changed by debundle, like "/" to "__"');
-}
-try {
-  r('6Ydq');
-} catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "6Ydq" which maybe changed by debundle, like "/" to "__"');
-}
-try {
   require('./VBxf');
+}
+try {
+  true;
 } catch (e) {
-  console.log(e.message);
-  console.log('Sth wrong with a module whoes origin name is "VBxf" which maybe changed by debundle, like "/" to "__"');
+  require('./bcs1');
+}
+try {
+  true;
+} catch (e) {
+  require('./4Frv');
+}
+try {
+  true;
+} catch (e) {
+  require('qX+M');
+}
+try {
+  true;
+} catch (e) {
+  require('A9TN');
+}
+try {
+  true;
+} catch (e) {
+  require('6Ydq');
 }

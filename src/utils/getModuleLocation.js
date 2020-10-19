@@ -136,6 +136,10 @@ function getModuleLocation(
   return filePath;
 }
 
+function found_location(result) {
+  return typeof (result) === 'string'
+}
+
 function get_relative_moduleLocation(node,this_mod, that_mod_name, modules, knownPaths, entryPointModuleId) {
 
   const that_mod = modules.find(i => i.id === that_mod_name);
@@ -176,7 +180,7 @@ function reverseObject(obj) {
   }, {});
 }
 
-module.exports = {setFileExt ,getModuleLocation,get_relative_moduleLocation};
+module.exports = {setFileExt ,getModuleLocation,get_relative_moduleLocation, found_location};
 
 if (require.main === module) {
   let modules = [
