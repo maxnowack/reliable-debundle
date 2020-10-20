@@ -66,7 +66,7 @@ if (config.fileExt) {
 config.replaceRequires = typeof config.replaceRequires === 'undefined' ? "inline" : config.replaceRequires;
 config.replaceModules = typeof config.replaceModules === 'undefined' ? "inline" : config.replaceModules;
 config.replaceExports = typeof config.replaceExports === 'undefined' ? "inline" : config.replaceExports;
-config.variableType = typeof config.variableType === 'undefined' ? "const" : config.variableType;
+config.variableType = config.variableType !== 'var' ? "const" : 'var';
 
 config.keepDeeperThan = typeof config.keepDeeperThan === 'undefined' ? 999 : parseInt(config.keepDeeperThan);
 config.keepArgumentsDeeperThan = typeof config.keepArgumentsDeeperThan === 'undefined' ? 1 : parseInt(config.keepArgumentsDeeperThan);
