@@ -76,7 +76,7 @@ To use code jumping, wait for a better Intellij Idea, or use `"replaceRequires":
     "friendlyExports": {
       "enable": 1,
       "regexp": "^require\\.d\\(t, ['\"](\\w+?)['\"],\\s*function\\s*\\(\\)\\s*\\{\\s+return ([^;]+);\\s+\\}\\)"
-      "deleteOld": 1
+      "deleteOld": 0
       },
     "reduceComma": {
       "enable": 1,
@@ -144,6 +144,17 @@ exports.c = F1;
 exports.d = F2;
 ```
 There code allow you jump and refactor in Intellij Idea products.
+
+'"deleteOld": 1' would drop origian code, providing more terse code, but cause errors in the following case
+``` 
+r.d(t, "o", function () { return o; });
+r.d(t, "setup", function () { return setup; });
+let o = 'not ready';
+const setup = () => ( o = 'ok' );
+```
+when this module is exectuted, `o==="not ready"`. but in a real-life app, after `setup()`, `o==="not ready"`.  
+If `r.d(t, "o", function () { return o; });`  is dropped, `o` is alway equal to `"not really"`.
+      
 
 ### `convertRequireBind` can support modules requied async
 
