@@ -51,8 +51,8 @@ function webpackBrowserifyLikeDecoder(moduleArrayAST, knownPaths) {
     let id = moduleDescriptor.key.value || moduleDescriptor.key.name;
     console.log(`* Discovered module ${id}`);
 
-    if (moduleDescriptor.value.type !== 'FunctionExpression') {
-      throw new Error(`Module ${id} has a valid key, but maps to something that isn't a function.`);
+    if (!['FunctionExpression', 'ArrowFunctionExpression'].includes(moduleDescriptor.value.type)) {
+      throw new Error(`Module ${id} has a valid key, but maps to something that isn't a function. ${moduleDescriptor.value.type}`);
     }
 
     // Extract the function that wraps the module.
